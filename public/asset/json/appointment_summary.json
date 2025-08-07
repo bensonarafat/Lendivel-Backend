@@ -1,0 +1,41 @@
+{
+  "service_amount" : 100,
+  "discount_amount" : 10,
+  "subtotal" : 90,
+  "total_tax_amount" : 14,
+  "payable_amount" : 104,
+  "coupon_apply" : 1,
+  "coupon" : {
+            "id": 11,
+            "coupon": "MarchEndSale",
+            "percentage": 10,
+            "max_discount_amount": 25,
+            "heading": "Clearance sale",
+            "description": "Flat Discount 15%",
+            "created_at": "2023-03-15T11:14:51.000000Z",
+            "updated_at": "2023-03-15T11:14:51.000000Z"
+  },
+ "taxes": [
+            {
+                "id": 1,
+                "status": 1,
+                "tax_title": "IGST",
+                "type": 0,
+                "value": 10,
+                "tax_amount": 9,
+                "created_at": "2023-03-16T17:05:35.000000Z",
+                "updated_at": "2023-03-16T17:05:35.000000Z"
+            },
+            {
+                "id": 2,
+                "status": 1,
+                "tax_title": "Tool Charges",
+                "type": 1,
+                "value": 5,
+                "tax_amount": 5,
+                "created_at": "2023-03-16T17:06:11.000000Z",
+                "updated_at": "2023-03-16T17:06:11.000000Z"
+            }
+        ]
+
+}

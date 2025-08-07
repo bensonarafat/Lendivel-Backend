@@ -1,0 +1,12 @@
+{
+  "notes": "Whole Prescription Note Here",
+  "addMedicine": [
+    {
+      "title": "Ibuprofen (Advil)",
+      "quantity": 5,
+      "dosage": "1-0-0",
+      "mealTime": 0,
+      "notes": "Medicine Specific Note"
+    }
+  ]
+}

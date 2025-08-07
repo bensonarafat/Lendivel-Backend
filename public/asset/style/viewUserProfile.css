@@ -1,0 +1,84 @@
+.text-grey {
+    color: grey !important;
+}
+
+.p-data {
+    font-size: 20px !important;
+    font-weight: bold !important;
+}
+.owner-img-border {
+    border: 2px solid #156779 !important;
+}
+
+.bg-cat-tag {
+    background: #d8f6fd;
+    color: #156779 !important;
+}
+
+.word-wrap td {
+    white-space: normal !important;
+}
+.word-wrap tr th:nth-child(3),
+.word-wrap tr td:nth-child(3) {
+    width: 200px !important;
+    white-space: normal !important;
+}
+.salon_image {
+    position: relative;
+    margin-right: 15px;
+    cursor: pointer;
+}
+.salon_image i {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: #ffffff4f;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 14px;
+    color: #fff;
+    backdrop-filter: blur(7px);
+}
+
+#tabGallery table.dataTable td {
+    white-space: normal !important;
+}
+
+.w-70 {
+    width: 70% !important;
+}
+.w-30 {
+    width: 30% !important;
+}
+
+.starDisabled {
+    color: rgb(184, 184, 184) !important;
+}
+.starActive {
+    color: orangered !important;
+}
+
+.bank-details span {
+    display: block;
+    line-height: 18px;
+}
+
+.ic-debit {
+    font-size: 17px !important;
+    color: rgb(255, 63, 63);
+}
+.ic-credit {
+    font-size: 17px !important;
+    color: rgb(69, 136, 72);
+}
+.text-debit {
+    color: rgb(255, 63, 63);
+}
+
+.text-credit {
+    color: rgb(69, 136, 72);
+}

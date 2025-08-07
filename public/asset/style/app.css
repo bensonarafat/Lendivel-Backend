@@ -1,0 +1,118 @@
+.bg-topRated {
+    background: linear-gradient(180deg, #dfc298 0%, #bb996e 100%) !important;
+}
+
+.activeLi {
+    background-color: #0080cb;
+    /* background-color: rgb(22, 1, 1) !important; */
+    margin: 5px 10px !important;
+    border-radius: 10px;
+    padding: 0px 0px !important;
+    color: white !important;
+}
+
+.activeLi a i {
+    color: white !important;
+}
+
+.activeLi a span {
+    color: white !important;
+}
+
+.sidebar-menu li {
+    margin: 5px 10px !important;
+    border-radius: 5px !important;
+}
+
+.sidebar-menu li a:hover {
+    border-radius: 5px !important;
+    color: white !important;
+    background-color: rgb(65, 65, 65) !important;
+}
+
+.sidebar-menu li a:hover i {
+    color: white !important;
+}
+
+.sidebar-menu li a:hover span {
+    color: white !important;
+}
+/*
+i {
+    color: white;
+}
+
+input:focus {
+    border-color: #FC3901 !important;
+}
+
+textarea:focus {
+    border-color: #FC3901 !important;
+}
+
+select:focus {
+    border-color: #FC3901 !important;
+}
+
+.btn-primary {
+    background-image: linear-gradient(to top,#F61D80, #9207FF) !important;
+
+}
+
+.nav-pills .active {
+    background-image: linear-gradient(to top,#F61D80, #9207FF) !important;
+
+}
+
+.pagination .active a {
+    border: 1px solid #F61D80 !important;
+    background-image: linear-gradient(to top,#F61D80, #9207FF) !important;
+} */
+
+table.dataTable th,
+table.dataTable td {
+    vertical-align: middle;
+    /* white-space: nowrap !important; */
+}
+
+.card {
+    box-shadow: none !important;
+}
+
+.dataTables_filter {
+    text-align: right;
+}
+.dataTables_filter label {
+    display: inline-flex;
+    align-items: center;
+}
+.dataTables_filter label input {
+    margin-left: 10px;
+}
+.dataTables_length label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+.dataTables_length label select {
+    margin: 0 10px;
+}
+.pagination {
+    justify-content: flex-end;
+}
+
+span.summery_scroll {
+    width: 800px;
+    display: inline-block;
+    height: 100px;
+    overflow: auto;
+}
+
+.summery_scroll::-webkit-scrollbar {
+    width: 4px;
+}
+
+.summery_scroll::-webkit-scrollbar-thumb {
+    background-color: rgb(177, 177, 177);
+    /* outline: 1px solid slategrey; */
+}

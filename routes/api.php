@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\ConnectionController;
 use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\ReelController;
 use App\Http\Controllers\SettingsController;
@@ -105,6 +106,11 @@ Route::post('addPrescription', [AppointmentController::class, 'addPrescription']
 Route::post('editPrescription', [AppointmentController::class, 'editPrescription'])->middleware('checkHeader');
 Route::post('completeAppointment', [AppointmentController::class, 'completeAppointment'])->middleware('checkHeader');
 Route::post('fetchAppointmentHistory', [AppointmentController::class, 'fetchAppointmentHistory'])->middleware('checkHeader');
+
+// Connection
+Route::post("requestConnection", [ConnectionController::class, "requestConnection"])->middleware('checkHeader');
+Route::post("acceptConnection", [ConnectionController::class, "acceptConnection"])->middleware("checkHeader");
+Route::post("declineConnection", [ConnectionController::class, "declineConnection"])->middleware("checkHeader");
 
 // Wallet
 Route::post('fetchDoctorWalletStatement', [AppointmentController::class, 'fetchDoctorWalletStatement'])->middleware('checkHeader');

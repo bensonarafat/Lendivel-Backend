@@ -84,4 +84,11 @@ final class Constants
     const statusWithdrawalPending = 0;
     const statusWithdrawalCompleted = 1;
     const statusWithdrawalRejected = 2;
+
+    // Connection status
+    const connectionPlacedPending = 0;
+    const connectionAccepted = 1;
+    const connectionCompleted = 2;
+    const connectionDeclined = 3;
+    const connectionCancelled = 4;
 }

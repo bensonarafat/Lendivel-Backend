@@ -26,7 +26,8 @@ use Illuminate\Validation\Rule;
 class AppointmentController extends Controller
 {
     //
-    function scheduleAppointmentReminders(Request $request){
+    function scheduleAppointmentReminders(Request $request)
+    {
         $rules = [
             'user_id' => 'required',
             'appointment_id' => 'required',
@@ -45,19 +46,19 @@ class AppointmentController extends Controller
         }
 
         $appointment = Appointments::where('id', $request->appointment_id)
-        ->with(['user', 'patient', 'doctor', 'documents', 'rating', 'prescription'])
-        ->first();
+            ->with(['user', 'patient', 'doctor', 'documents', 'rating', 'prescription'])
+            ->first();
         if ($appointment == null) {
             return GlobalFunction::sendSimpleResponse(false, 'Appointment does not exists!');
         }
 
         $item = ScheduledReminders::where('appointment_id', $appointment->id)->first();
-        if($item != null){
+        if ($item != null) {
             return GlobalFunction::sendSimpleResponse(false, 'This appointment has scheduled notifications already!');
         }
 
-        foreach($request->scheduled_at as $schedule){
-            $data = explode('/',$schedule);
+        foreach ($request->scheduled_at as $schedule) {
+            $data = explode('/', $schedule);
             $item = new ScheduledReminders();
             $item->user_id = $user->id;
             $item->appointment_id = $appointment->id;
@@ -67,7 +68,6 @@ class AppointmentController extends Controller
         }
 
         return GlobalFunction::sendSimpleResponse(true, 'Reminders scheduled successfully!');
-
     }
 
     function fetchAcceptedPendingAppointmentsOfDoctorByDate(Request $request)
@@ -861,8 +861,8 @@ class AppointmentController extends Controller
         $title = "Appointment :" . $appointment->appointment_number;
         $message = "Appointment has been rescheduled successfully!";
         $notifyData = [
-            'type'=> Constants::notifyAppointment.'',
-            'id'=>$appointment->id.''
+            'type' => Constants::notifyAppointment . '',
+            'id' => $appointment->id . ''
         ];
         GlobalFunction::sendPushToUser($title, $message, $user, $notifyData);
 
@@ -913,8 +913,8 @@ class AppointmentController extends Controller
         $title = "Appointment :" . $appointment->appointment_number;
         $message = "Appointment has been cancelled successfully!";
         $notifyData = [
-            'type'=> Constants::notifyAppointment.'',
-            'id'=> $appointment->id.''
+            'type' => Constants::notifyAppointment . '',
+            'id' => $appointment->id . ''
         ];
         GlobalFunction::sendPushToUser($title, $message, $user, $notifyData);
 
@@ -1026,8 +1026,8 @@ class AppointmentController extends Controller
             $title = "Appointment :" . $appointment->appointment_number;
             $message = "Appointment has been completed by doctor!";
             $notifyData = [
-                'type'=> Constants::notifyAppointment.'',
-                'id'=> $appointment->id.''
+                'type' => Constants::notifyAppointment . '',
+                'id' => $appointment->id . ''
             ];
             GlobalFunction::sendPushToUser($title, $message, $appointment->user, $notifyData);
 
@@ -1077,13 +1077,13 @@ class AppointmentController extends Controller
             $title = "Appointment :" . $appointment->appointment_number;
             $message = "Appointment has been declined!";
             $notifyData = [
-                'type'=> Constants::notifyAppointment.'',
-                'id'=> $appointment->id.''
+                'type' => Constants::notifyAppointment . '',
+                'id' => $appointment->id . ''
             ];
             GlobalFunction::sendPushToUser($title, $message, $appointment->user, $notifyData);
 
-             // Delete user scheduled reminders
-             GlobalFunction::deleteAppointmentScheduledReminders($appointment);
+            // Delete user scheduled reminders
+            GlobalFunction::deleteAppointmentScheduledReminders($appointment);
 
             return GlobalFunction::sendSimpleResponse(true, 'Appointment declined successfully');
         } else {
@@ -1124,12 +1124,12 @@ class AppointmentController extends Controller
             $title = "Appointment :" . $appointment->appointment_number;
             $message = "Appointment has been accepted!";
             $notifyData = [
-                'type'=> Constants::notifyAppointment.'',
-                'id'=> $appointment->id.''
+                'type' => Constants::notifyAppointment . '',
+                'id' => $appointment->id . ''
             ];
 
-             // Activate Scheduled Reminders
-             ScheduledReminders::where('appointment_id', $appointment->id)->update(['status'=> 1]);
+            // Activate Scheduled Reminders
+            ScheduledReminders::where('appointment_id', $appointment->id)->update(['status' => 1]);
 
             GlobalFunction::sendPushToUser($title, $message, $appointment->user, $notifyData);
 
@@ -1504,8 +1504,8 @@ class AppointmentController extends Controller
         $title = "Appointment :" . $appointment->appointment_number;
         $message = "Appointment has been placed successfully!";
         $notifyData = [
-            'type'=> Constants::notifyAppointment.'',
-            'id'=> $appointment->id.''
+            'type' => Constants::notifyAppointment . '',
+            'id' => $appointment->id . ''
         ];
         GlobalFunction::sendPushToUser($title, $message, $user, $notifyData);
 
@@ -1513,10 +1513,10 @@ class AppointmentController extends Controller
         $title = "New Appointment Request Received";
         $message = "Review the details and accept.";
         $notifyData = [
-            'type'=> Constants::notifyAppointment.'',
-            'id'=> $appointment->id.''
+            'type' => Constants::notifyAppointment . '',
+            'id' => $appointment->id . ''
         ];
-        GlobalFunction::sendPushToDoctor($title, $message, $doctor,$notifyData);
+        GlobalFunction::sendPushToDoctor($title, $message, $doctor, $notifyData);
 
         // Add statement entry
         GlobalFunction::addUserStatementEntry(

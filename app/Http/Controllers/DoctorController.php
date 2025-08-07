@@ -2559,7 +2559,7 @@ class DoctorController extends Controller
             'identity' => 'required',
             'device_token' => 'required',
             'device_type' => 'required',
-            'is_login' => [Rule::in(0,1)] //1=login 0=register
+            'is_login' => [Rule::in(0, 1)] //1=login 0=register
         ];
 
         $validator = Validator::make($request->all(), $rules);
@@ -2570,8 +2570,8 @@ class DoctorController extends Controller
         }
 
         $doctor = Doctors::where('identity', $request->identity)->first();
-        if($request->is_login == 1 && $doctor == null){
-               return GlobalFunction::sendSimpleResponse(false, 'user not found');
+        if ($request->is_login == 1 && $doctor == null) {
+            return GlobalFunction::sendSimpleResponse(false, 'user not found');
         }
 
         if ($doctor == null) {

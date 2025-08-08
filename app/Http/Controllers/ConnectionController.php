@@ -14,6 +14,40 @@ use Illuminate\Support\Facades\Validator;
 class ConnectionController extends Controller
 {
 
+    public function isConnected(Request $request)
+    {
+        $rules = [
+            'doctor_id' => 'required',
+            'user_id' => 'required'
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            $messages = $validator->errors()->all();
+            $msg = $messages[0];
+            return response()->json(['status' => false, 'message' => $msg]);
+        }
+
+        $doctor = Doctors::where('id', $request->doctor_id)->first();
+        if ($doctor == null) {
+            return GlobalFunction::sendSimpleResponse(false, 'Doctor does not exists!');
+        }
+
+        $user = User::where('id', $request->user_id)->first();
+        if ($user == null) {
+            return GlobalFunction::sendSimpleResponse(false, 'User does not exists!');
+        }
+
+        // make sure they are no connection btw this user and the doctor
+        $connection = Connection::where(['user_id' => $request->user_id, 'doctor_id' => $request->doctor_id])
+            ->first();
+        if ($connection == null) {
+            return GlobalFunction::sendSimpleResponse(false, 'No connection found');
+        } else {
+            return GlobalFunction::sendDataResponse(true, 'Connection found', $connection->toArray());
+        }
+    }
+
     public function requestConnection(Request $request)
     {
         $rules = [

@@ -108,6 +108,7 @@ Route::post('completeAppointment', [AppointmentController::class, 'completeAppoi
 Route::post('fetchAppointmentHistory', [AppointmentController::class, 'fetchAppointmentHistory'])->middleware('checkHeader');
 
 // Connection
+Route::post("isConnected", [ConnectionController::class, "isConnected"])->middleware("isConnected");
 Route::post("requestConnection", [ConnectionController::class, "requestConnection"])->middleware('checkHeader');
 Route::post("acceptConnection", [ConnectionController::class, "acceptConnection"])->middleware("checkHeader");
 Route::post("declineConnection", [ConnectionController::class, "declineConnection"])->middleware("checkHeader");

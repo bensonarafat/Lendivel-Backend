@@ -25,6 +25,7 @@ use App\Models\GlobalFunction;
 use App\Models\GlobalSettings;
 use App\Models\Prescriptions;
 use App\Models\Users;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -2765,5 +2766,16 @@ class DoctorController extends Controller
         $doctor = GlobalFunction::generateDoctorFullData($doctor->id);
 
         return GlobalFunction::sendSimpleResponse(true, 'Doctor log out successfully');
+    }
+
+
+    public function fetchRandomDoctor($categoryId)
+    {
+        try {
+            $doctors = Doctors::where("category_id", $categoryId)->with(['category'])->inRandomOrder()->get();
+            return GlobalFunction::sendDataResponse(true, 'Doctor Data fetched successfully', $doctors);
+        } catch (Exception $e) {
+            return response()->json(['status' => false, 'message' => "There was an error fetching random doctors. Try again later"]);
+        }
     }
 }

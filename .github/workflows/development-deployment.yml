@@ -1,0 +1,32 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # copy from .env.development to .env
+      - name: Copy environment file
+        run: echo "${{ secrets.DEV_ENV_FILE }}" > .env
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.0"
+
+      - name: Set up LTTP
+        run: sudo apt-get install -y lftp
+
+      - name: Deploy to FTP
+        run: |
+          chmod +x deploy.sh
+          # Excluding directories that should not be uploaded
+          ./deploy.sh ${{ secrets.FTP_HOST }} ${{ secrets.FTP_USERNAME }} ${{ secrets.FTP_PASSWORD }} ./ /

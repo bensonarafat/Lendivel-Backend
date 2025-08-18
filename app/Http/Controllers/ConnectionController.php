@@ -39,7 +39,11 @@ class ConnectionController extends Controller
         }
 
         // make sure they are no connection btw this user and the doctor
-        $connection = Connection::where(['user_id' => $request->user_id, 'doctor_id' => $request->doctor_id])
+        $connection = Connection::where([
+            'user_id' => $request->user_id,
+            'doctor_id' => $request->doctor_id,
+            "status" => Constants::orderPlacedPending
+        ])
             ->first();
         if ($connection == null) {
             return GlobalFunction::sendSimpleResponse(false, 'No connection found');
@@ -75,8 +79,8 @@ class ConnectionController extends Controller
         // make sure they are no connection btw this user and the doctor
         $connection = Connection::where(['user_id' => $request->user_id, 'doctor_id' => $request->doctor_id])
             ->first();
-        if ($connection == null) {
-            return GlobalFunction::sendSimpleResponse(false, 'You can request connection to this user');
+        if ($connection != null) {
+            return GlobalFunction::sendSimpleResponse(false, 'You can\'t request connection to this user');
         }
         try {
             $connection = new Connection();

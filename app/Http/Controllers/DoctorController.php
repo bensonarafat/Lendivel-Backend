@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Appointments;
+use App\Models\Connection;
 use App\Models\Constants;
 use App\Models\DoctorAppointmentSlots;
 use App\Models\DoctorAwards;
@@ -2769,11 +2770,34 @@ class DoctorController extends Controller
     }
 
 
-    public function fetchRandomDoctor($categoryId)
+    public function fetchRandomDoctor(Request $request)
     {
+        $rules = [
+            'doctor_id' => 'required',
+            'user_id' => 'required',
+            'category_id' => 'required'
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            $messages = $validator->errors()->all();
+            $msg = $messages[0];
+            return response()->json(['status' => false, 'message' => $msg]);
+        }
         try {
-            $doctors = Doctors::where("category_id", $categoryId)->with(['category'])->inRandomOrder()->get();
-            return GlobalFunction::sendDataResponse(true, 'Doctor Data fetched successfully', $doctors);
+            // check if there is already a connection between the doctor and user then send that same doctor else random
+            $connection = Connection::where(["user_id" => $request->user_id, "doctor_id"])
+                ->orWhere(["status" => Constants::connectionAccepted])
+                ->orWhere(['status' => Constants::connectionPlacedPending])
+                ->first();
+            if ($connection != null) {
+                $doctor = Doctors::find($connection->doctor_id);
+                if ($request->category_id == $doctor->category_id) {
+                    return GlobalFunction::sendDataResponse(true, 'Doctor Data fetched successfully', $doctor);
+                }
+            }
+            $doctor = Doctors::where("category_id", $request->category_id)->with(['category'])->inRandomOrder()->first();
+            return GlobalFunction::sendDataResponse(true, 'Doctor Data fetched successfully', $doctor);
         } catch (Exception $e) {
             return response()->json(['status' => false, 'message' => "There was an error fetching random doctors. Try again later"]);
         }

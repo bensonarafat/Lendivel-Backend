@@ -108,11 +108,14 @@ Route::post('completeAppointment', [AppointmentController::class, 'completeAppoi
 Route::post('fetchAppointmentHistory', [AppointmentController::class, 'fetchAppointmentHistory'])->middleware('checkHeader');
 
 // Connection
-Route::get("random-doctors/{category_id}", [DoctorController::class, "fetchRandomDoctor"])->name("checkHeader");
+Route::post("random-doctors", [DoctorController::class, "fetchRandomDoctor"])->name("checkHeader");
 Route::post("isConnected", [ConnectionController::class, "isConnected"])->middleware("checkHeader");
 Route::post("requestConnection", [ConnectionController::class, "requestConnection"])->middleware('checkHeader');
 Route::post("acceptConnection", [ConnectionController::class, "acceptConnection"])->middleware("checkHeader");
 Route::post("declineConnection", [ConnectionController::class, "declineConnection"])->middleware("checkHeader");
+// Pause Messages
+Route::post("pause-messages", [ConnectionController::class, "pauseCommunication"])->name("checkHeader");
+Route::post("resume-messages", [ConnectionController::class, "resumeCommunication"])->name("checkHeader");
 
 // Wallet
 Route::post('fetchDoctorWalletStatement', [AppointmentController::class, 'fetchDoctorWalletStatement'])->middleware('checkHeader');

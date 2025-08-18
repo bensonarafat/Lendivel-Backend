@@ -91,4 +91,8 @@ final class Constants
     const connectionCompleted = 2;
     const connectionDeclined = 3;
     const connectionCancelled = 4;
+
+    // Chat Activity Status
+    const chatActivityPause = 0;
+    const chatActivityActive = 1;
 }

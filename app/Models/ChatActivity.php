@@ -5,11 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Connection extends Model
+class ChatActivity extends Model
 {
     use HasFactory;
 
-    public $table = "connections";
+    public $table = "chat_activities";
 
     public function user()
     {

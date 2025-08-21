@@ -43,7 +43,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Google\Client;
 
-include "../app/Class/AgoraDynamicKey/RtcTokenBuilder.php";
+include "./app/Class/AgoraDynamicKey/RtcTokenBuilder.php";
 
 class SettingsController extends Controller
 {

@@ -19,7 +19,8 @@ class ConnectionController extends Controller
     {
         $rules = [
             'doctor_id' => 'required',
-            'user_id' => 'required'
+            'user_id' => 'required',
+            'request_by' => 'required|in:doctor,user'
         ];
 
         $validator = Validator::make($request->all(), $rules);
@@ -43,6 +44,7 @@ class ConnectionController extends Controller
         $connection = Connection::where([
             'user_id' => $request->user_id,
             'doctor_id' => $request->doctor_id,
+            'request_by' => $request->request_by,
             "status" => Constants::connectionPlacedPending
         ])
             ->first();
@@ -57,7 +59,8 @@ class ConnectionController extends Controller
     {
         $rules = [
             'doctor_id' => 'required',
-            'user_id' => 'required'
+            'user_id' => 'required',
+            'request_by' => 'required|in:doctor,user',
         ];
 
         $validator = Validator::make($request->all(), $rules);
@@ -81,6 +84,7 @@ class ConnectionController extends Controller
         $connection = Connection::where([
             'user_id' => $request->user_id,
             'doctor_id' => $request->doctor_id,
+            'request_by' => $request->request_by,
             "status" => Constants::connectionPlacedPending
         ])->first();
         if ($connection != null) {
@@ -90,6 +94,7 @@ class ConnectionController extends Controller
             $connection = new Connection();
             $connection->doctor_id = $request->doctor_id;
             $connection->user_id = $request->user_id;
+            $connection->request_by = $request->request_by;
             $connection->message = $request->message;
             $connection->save();
             return GlobalFunction::sendSimpleResponse(true, 'Connection sent successfully');
@@ -129,14 +134,14 @@ class ConnectionController extends Controller
             // Create Chat activities when connection is accepted if not already exist
             $checkActivities = ChatActivity::where(
                 [
-                    "user_id" => $request->user_id,
-                    "doctor_id" => $request->doctor_id,
+                    "user_id" => $connection->user_id,
+                    "doctor_id" => $connection->doctor_id,
                 ]
             )->exists();
             if (!$checkActivities) {
                 ChatActivity::create([
-                    "user_id" => $request->user_id,
-                    "doctor_id" => $request->doctor_id,
+                    "user_id" => $connection->user_id,
+                    "doctor_id" => $connection->doctor_id,
                     "status"    => Constants::chatActivityActive,
                 ]);
             }
@@ -200,6 +205,120 @@ class ConnectionController extends Controller
         }
     }
 
+    public function cancelConnectionRequest(Request $request)
+    {
+        $rules = [
+            'connection_id' => 'required',
+        ];
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            $messages = $validator->errors()->all();
+            $msg = $messages[0];
+            return response()->json(['status' => false, 'message' => $msg]);
+        }
+
+        $connection = Connection::where('id', $request->connection_id)
+            ->with(['user', 'doctor'])
+            ->first();
+        if ($connection == null) {
+            return GlobalFunction::sendSimpleResponse(false, 'Connection does not exists!');
+        }
+
+        if ($connection->status == Constants::connectionPlacedPending) {
+            $connection->delete();
+
+            // Send Push to user
+            $title = "Connection Request Cancelled";
+            $message = "Your connection request has been cancelled!";
+            GlobalFunction::sendPushToUser($title, $message, $connection->user);
+
+            return GlobalFunction::sendSimpleResponse(true, 'Connection request cancelled successfully');
+        } else {
+            return response()->json(['status' => false, 'message' => "This connection can't be cancelled!"]);
+        }
+    }
+
+    public function fetchMyConnections(Request $request)
+    {
+        $rules = [
+            'user_id' => 'required'
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            $messages = $validator->errors()->all();
+            $msg = $messages[0];
+            return response()->json(['status' => false, 'message' => $msg]);
+        }
+
+        $user = User::where('id', $request->user_id)->first();
+        if ($user == null) {
+            return GlobalFunction::sendSimpleResponse(false, 'User does not exists!');
+        }
+
+        // Fetch connections for the user
+        $connections = Connection::where('user_id', $request->user_id)
+            ->with(['doctor'])
+            ->get();
+
+        if ($connections->isEmpty()) {
+            return GlobalFunction::sendSimpleResponse(false, 'No connections found');
+        } else {
+            return GlobalFunction::sendDataResponse(true, 'Connections found', $connections);
+        }
+    }
+
+    public function reconnectConnection(Request $request)
+    {
+        $rules = [
+            'doctor_id' => 'required',
+            'user_id' => 'required',
+            'message' => 'nullable|string|max:255'
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            $messages = $validator->errors()->all();
+            $msg = $messages[0];
+            return response()->json(['status' => false, 'message' => $msg]);
+        }
+
+        $doctor = Doctors::where('id', $request->doctor_id)->first();
+        if ($doctor == null) {
+            return GlobalFunction::sendSimpleResponse(false, 'Doctor does not exists!');
+        }
+
+        $user = User::where('id', $request->user_id)->first();
+        if ($user == null) {
+            return GlobalFunction::sendSimpleResponse(false, 'User does not exists!');
+        }
+
+        // make sure there is already a chat activity
+        $chatActivity = ChatActivity::where(
+            [
+                "user_id" => $request->user_id,
+                "doctor_id" => $request->doctor_id
+            ]
+        )->first();
+        if ($chatActivity != null) {
+            return GlobalFunction::sendSimpleResponse(false, 'Chat activity already exists');
+        } else {
+            // Create new chat activity
+            ChatActivity::create([
+                "user_id" => $request->user_id,
+                "doctor_id" => $request->doctor_id,
+                "status"    => Constants::chatActivityActive,
+            ]);
+
+            // Send Push to user
+            $title = "Reconnected with " . $doctor->name;
+            $message = "You have reconnected with the doctor!";
+            GlobalFunction::sendPushToUser($title, $message, $user);
+
+            return GlobalFunction::sendSimpleResponse(true, 'Reconnection successful');
+        }
+    }
+
     public function pauseCommunication(Request $request)
     {
         $rules = [
@@ -225,20 +344,19 @@ class ConnectionController extends Controller
         }
 
         // make sure there is already a chat activity
-        $exists = ChatActivity::where(
+        $chatActivity = ChatActivity::where(
             [
                 "user_id" => $request->user_id,
                 "doctor_id" => $request->doctor_id
             ]
-        );
-        if ($exists) {
-            $chatActivity = new ChatActivity();
+        )->first();
+        if ($chatActivity != null) {
             $chatActivity->status = Constants::chatActivityPause;
             $chatActivity->save();
 
             // Send Push to user
-            $title = "Message pause";
-            $message = "Message has pause, you won't be able to communcate with the doctor at the moment";
+            $title = $doctor->name . " paused communication";
+            $message = $doctor->name . " has paused communication, you won't be able to message with the doctor at the moment";
             $notifyData = [
                 'type' => Constants::notifyAppointment . '',
                 'id' => $chatActivity->id . ''
@@ -276,21 +394,20 @@ class ConnectionController extends Controller
         }
 
         // make sure there is already a chat activity
-        $exists = ChatActivity::where(
+        $chatActivity = ChatActivity::where(
             [
                 "user_id" => $request->user_id,
                 "doctor_id" => $request->doctor_id
             ]
-        );
-        if ($exists) {
-            $chatActivity = new ChatActivity();
+        )->first();
+        if ($chatActivity != null) {
             $chatActivity->status = Constants::chatActivityActive;
             $chatActivity->save();
 
 
             // Send Push to user
-            $title = "Message resume";
-            $message = "Message has resume, now you can continue communication";
+            $title = $doctor->name . " resume communication";
+            $message = $doctor->name . " has resume communication, now you can continue chatting with the doctor";
             $notifyData = [
                 'type' => Constants::notifyAppointment . '',
                 'id' => $chatActivity->id . ''
@@ -300,6 +417,56 @@ class ConnectionController extends Controller
             return GlobalFunction::sendSimpleResponse(true, 'Chat activities updated');
         } else {
             return response()->json(['status' => false, 'message' => "Sorry, you can't resume the chat!"]);
+        }
+    }
+
+    public function blockCommunication(Request $request)
+    {
+        $rules = [
+            'doctor_id' => 'required',
+            'user_id' => 'required'
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            $messages = $validator->errors()->all();
+            $msg = $messages[0];
+            return response()->json(['status' => false, 'message' => $msg]);
+        }
+
+        $doctor = Doctors::where('id', $request->doctor_id)->first();
+        if ($doctor == null) {
+            return GlobalFunction::sendSimpleResponse(false, 'Doctor does not exists!');
+        }
+
+        $user = User::where('id', $request->user_id)->first();
+        if ($user == null) {
+            return GlobalFunction::sendSimpleResponse(false, 'User does not exists!');
+        }
+
+        // make sure there is already a chat activity
+        $chatActivity = ChatActivity::where(
+            [
+                "user_id" => $request->user_id,
+                "doctor_id" => $request->doctor_id
+            ]
+        )->first();
+        if ($chatActivity != null) {
+            $chatActivity->status = Constants::chatActivityBlocked;
+            $chatActivity->save();
+
+            // Send Push to user
+            $title = $doctor->name . " Blocked Communication";
+            $message = $doctor->name . " has blocked communication, you won't be able to send messages with the doctor at the moment";
+            $notifyData = [
+                'type' => Constants::notifyAppointment . '',
+                'id' => $chatActivity->id . ''
+            ];
+            GlobalFunction::sendPushToUser($title, $message, $user, $notifyData);
+
+            return GlobalFunction::sendSimpleResponse(true, 'Chat activities updated');
+        } else {
+            return response()->json(['status' => false, 'message' => "Sorry, you can't block the chat!"]);
         }
     }
 }

@@ -113,9 +113,15 @@ Route::post("isConnected", [ConnectionController::class, "isConnected"])->middle
 Route::post("requestConnection", [ConnectionController::class, "requestConnection"])->middleware('checkHeader');
 Route::post("acceptConnection", [ConnectionController::class, "acceptConnection"])->middleware("checkHeader");
 Route::post("declineConnection", [ConnectionController::class, "declineConnection"])->middleware("checkHeader");
+Route::post("cancelConnectionRequest", [ConnectionController::class, "cancelConnectionRequest"])->middleware("checkHeader");
+Route::post("fetchMyConnections", [ConnectionController::class, "fetchMyConnections"])->middleware("checkHeader");
+Route::post("reconnectConnection", [ConnectionController::class, "reconnectConnection"])->middleware("checkHeader");
+
 // Pause Messages
 Route::post("pause-messages", [ConnectionController::class, "pauseCommunication"])->name("checkHeader");
 Route::post("resume-messages", [ConnectionController::class, "resumeCommunication"])->name("checkHeader");
+Route::post("block-messages", [ConnectionController::class, "blockCommunication"])->name("checkHeader");
+
 
 // Wallet
 Route::post('fetchDoctorWalletStatement', [AppointmentController::class, 'fetchDoctorWalletStatement'])->middleware('checkHeader');

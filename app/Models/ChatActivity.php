@@ -9,6 +9,11 @@ class ChatActivity extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'user_id',
+        'doctor_id',
+        'status',
+    ];
     public $table = "chat_activities";
 
     public function user()

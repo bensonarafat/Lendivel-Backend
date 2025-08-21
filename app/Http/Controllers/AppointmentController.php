@@ -1497,7 +1497,7 @@ class AppointmentController extends Controller
             }
         }
         // Deducting Money From Wallet
-        $user->wallet = $user->wallet - $request->payable_amount;
+        // $user->wallet = $user->wallet - $request->payable_amount;
         $user->save();
 
         // Send Push to user

@@ -95,4 +95,5 @@ final class Constants
     // Chat Activity Status
     const chatActivityPause = 0;
     const chatActivityActive = 1;
+    const chatActivityBlocked = 2;
 }

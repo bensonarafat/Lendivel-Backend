@@ -2,34 +2,35 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Appointments;
-use App\Models\Connection;
-use App\Models\Constants;
-use App\Models\DoctorAppointmentSlots;
-use App\Models\DoctorAwards;
-use App\Models\DoctorBankAccount;
-use App\Models\DoctorCategories;
-use App\Models\DoctorCatSuggestions;
-use App\Models\DoctorEarningHistory;
-use App\Models\DoctorExperience;
-use App\Models\DoctorExpertise;
-use App\Models\DoctorHolidays;
-use App\Models\DoctorNotifications;
-use App\Models\DoctorPayoutHistory;
-use App\Models\DoctorReviews;
+use Exception;
+use App\Models\User;
+use App\Models\Users;
 use App\Models\Doctors;
-use App\Models\DoctorServiceLocations;
-use App\Models\DoctorServices;
-use App\Models\DoctorWalletStatements;
 use App\Models\FaqCats;
+use App\Models\Constants;
+use App\Models\Connection;
+use App\Models\Appointments;
+use App\Models\DoctorAwards;
+use Illuminate\Http\Request;
+use App\Models\DoctorReviews;
+use App\Models\Prescriptions;
+use App\Models\DoctorHolidays;
+use App\Models\DoctorServices;
 use App\Models\GlobalFunction;
 use App\Models\GlobalSettings;
-use App\Models\Prescriptions;
-use App\Models\Users;
-use Exception;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use App\Models\DoctorExpertise;
 use Illuminate\Validation\Rule;
+use App\Models\DoctorCategories;
+use App\Models\DoctorExperience;
+use App\Models\DoctorBankAccount;
+use App\Models\DoctorNotifications;
+use App\Models\DoctorPayoutHistory;
+use App\Models\DoctorCatSuggestions;
+use App\Models\DoctorEarningHistory;
+use App\Models\DoctorAppointmentSlots;
+use App\Models\DoctorServiceLocations;
+use App\Models\DoctorWalletStatements;
+use Illuminate\Support\Facades\Validator;
 
 class DoctorController extends Controller
 {
@@ -2773,7 +2774,6 @@ class DoctorController extends Controller
     public function fetchRandomDoctor(Request $request)
     {
         $rules = [
-            'doctor_id' => 'required',
             'user_id' => 'required',
             'category_id' => 'required'
         ];
@@ -2784,9 +2784,15 @@ class DoctorController extends Controller
             $msg = $messages[0];
             return response()->json(['status' => false, 'message' => $msg]);
         }
+
+        $user = User::where('id', $request->user_id)->first();
+        if ($user == null) {
+            return GlobalFunction::sendSimpleResponse(false, 'User does not exists!');
+        }
+
         try {
             // check if there is already a connection between the doctor and user then send that same doctor else random
-            $connection = Connection::where(["user_id" => $request->user_id, "doctor_id"])
+            $connection = Connection::where(["user_id" => $request->user_id])
                 ->orWhere(["status" => Constants::connectionAccepted])
                 ->orWhere(['status' => Constants::connectionPlacedPending])
                 ->first();

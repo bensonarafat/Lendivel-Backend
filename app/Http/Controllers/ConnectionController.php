@@ -469,4 +469,79 @@ class ConnectionController extends Controller
             return response()->json(['status' => false, 'message' => "Sorry, you can't block the chat!"]);
         }
     }
+
+
+    public function fetchRandomDoctor(Request $request)
+    {
+        $rules = [
+            'user_id' => 'required',
+            'category_id' => 'required'
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            $messages = $validator->errors()->all();
+            $msg = $messages[0];
+            return response()->json(['status' => false, 'message' => $msg]);
+        }
+
+        $user = User::where('id', $request->user_id)->first();
+        if ($user == null) {
+            return GlobalFunction::sendSimpleResponse(false, 'User does not exists!');
+        }
+
+        try {
+            // check if there is already a connection between the doctor and user then send that same doctor else random
+            $connection = Connection::where(["user_id" => $request->user_id])
+                ->orWhere(["status" => Constants::connectionAccepted])
+                ->orWhere(['status' => Constants::connectionPlacedPending])
+                ->first();
+            if ($connection != null) {
+                $doctor = Doctors::find($connection->doctor_id);
+                if ($request->category_id == $doctor->category_id) {
+                    return GlobalFunction::sendDataResponse(true, 'Doctor Data fetched successfully', $doctor);
+                }
+            }
+            $doctor = Doctors::where("category_id", $request->category_id)->with(['category'])->inRandomOrder()->first();
+            return GlobalFunction::sendDataResponse(true, 'Doctor Data fetched successfully', $doctor);
+        } catch (Exception $e) {
+            return response()->json(['status' => false, 'message' => "There was an error fetching random doctors. Try again later"]);
+        }
+    }
+
+
+    public function fetchRandomUser(Request $request)
+    {
+        $rules = [
+            'doctor_id' => 'required',
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            $messages = $validator->errors()->all();
+            $msg = $messages[0];
+            return response()->json(['status' => false, 'message' => $msg]);
+        }
+
+        $user = User::where('id', $request->user_id)->first();
+        if ($user == null) {
+            return GlobalFunction::sendSimpleResponse(false, 'User does not exists!');
+        }
+
+        try {
+            // check if there is already a connection between the user and doctor then send that same user else random
+            $connection = Connection::where(["doctor_id" => $request->user_id])
+                ->orWhere(["status" => Constants::connectionAccepted])
+                ->orWhere(['status' => Constants::connectionPlacedPending])
+                ->first();
+            if ($connection != null) {
+                $user = User::find($connection->user_id);
+                return GlobalFunction::sendDataResponse(true, 'User Data fetched successfully', $user);
+            }
+            $user = User::inRandomOrder()->first();
+            return GlobalFunction::sendDataResponse(true, 'User Data fetched successfully', $user);
+        } catch (Exception $e) {
+            return response()->json(['status' => false, 'message' => "There was an error fetching random users. Try again later"]);
+        }
+    }
 }

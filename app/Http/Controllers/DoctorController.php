@@ -2769,43 +2769,4 @@ class DoctorController extends Controller
 
         return GlobalFunction::sendSimpleResponse(true, 'Doctor log out successfully');
     }
-
-
-    public function fetchRandomDoctor(Request $request)
-    {
-        $rules = [
-            'user_id' => 'required',
-            'category_id' => 'required'
-        ];
-
-        $validator = Validator::make($request->all(), $rules);
-        if ($validator->fails()) {
-            $messages = $validator->errors()->all();
-            $msg = $messages[0];
-            return response()->json(['status' => false, 'message' => $msg]);
-        }
-
-        $user = User::where('id', $request->user_id)->first();
-        if ($user == null) {
-            return GlobalFunction::sendSimpleResponse(false, 'User does not exists!');
-        }
-
-        try {
-            // check if there is already a connection between the doctor and user then send that same doctor else random
-            $connection = Connection::where(["user_id" => $request->user_id])
-                ->orWhere(["status" => Constants::connectionAccepted])
-                ->orWhere(['status' => Constants::connectionPlacedPending])
-                ->first();
-            if ($connection != null) {
-                $doctor = Doctors::find($connection->doctor_id);
-                if ($request->category_id == $doctor->category_id) {
-                    return GlobalFunction::sendDataResponse(true, 'Doctor Data fetched successfully', $doctor);
-                }
-            }
-            $doctor = Doctors::where("category_id", $request->category_id)->with(['category'])->inRandomOrder()->first();
-            return GlobalFunction::sendDataResponse(true, 'Doctor Data fetched successfully', $doctor);
-        } catch (Exception $e) {
-            return response()->json(['status' => false, 'message' => "There was an error fetching random doctors. Try again later"]);
-        }
-    }
 }

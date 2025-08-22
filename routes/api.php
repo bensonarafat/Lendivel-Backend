@@ -108,7 +108,8 @@ Route::post('completeAppointment', [AppointmentController::class, 'completeAppoi
 Route::post('fetchAppointmentHistory', [AppointmentController::class, 'fetchAppointmentHistory'])->middleware('checkHeader');
 
 // Connection
-Route::post("random-doctors", [DoctorController::class, "fetchRandomDoctor"])->name("checkHeader");
+Route::post("random-doctors", [ConnectionController::class, "fetchRandomDoctor"])->name("checkHeader");
+Route::post("random-users", [ConnectionController::class, "fetchRandomUser"])->name("checkHeader");
 Route::post("isConnected", [ConnectionController::class, "isConnected"])->middleware("checkHeader");
 Route::post("requestConnection", [ConnectionController::class, "requestConnection"])->middleware('checkHeader');
 Route::post("acceptConnection", [ConnectionController::class, "acceptConnection"])->middleware("checkHeader");

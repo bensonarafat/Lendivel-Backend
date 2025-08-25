@@ -1406,13 +1406,13 @@ class AppointmentController extends Controller
             'date' => 'required',
             'time' => 'required',
             'type' => 'required',
-            'order_summary' => 'required',
-            'is_coupon_applied' => [Rule::in(1, 0)],
-            'service_amount' => 'required',
-            'discount_amount' => 'required',
-            'subtotal' => 'required',
-            'total_tax_amount' => 'required',
-            'payable_amount' => 'required',
+            // 'order_summary' => 'required',
+            // 'is_coupon_applied' => [Rule::in(1, 0)],
+            // 'service_amount' => 'required',
+            // 'discount_amount' => 'required',
+            // 'subtotal' => 'required',
+            // 'total_tax_amount' => 'required',
+            // 'payable_amount' => 'required',
         ];
 
         $validator = Validator::make($request->all(), $rules);
@@ -1448,9 +1448,9 @@ class AppointmentController extends Controller
             return response()->json(['status' => false, 'message' => "this doctor is not active!"]);
         }
 
-        if ($user->wallet < $request->payable_amount) {
-            return GlobalFunction::sendSimpleResponse(false, 'Insufficient balance in wallet');
-        }
+        // if ($user->wallet < $request->payable_amount) {
+        //     return GlobalFunction::sendSimpleResponse(false, 'Insufficient balance in wallet');
+        // }
 
         $appointment = new Appointments();
         if ($request->has('patient_id')) {
@@ -1470,22 +1470,22 @@ class AppointmentController extends Controller
         $appointment->type = $request->type;
 
         $appointment->problem = GlobalFunction::cleanString($request->problem);
-        $appointment->order_summary = $request->order_summary;
-        $appointment->is_coupon_applied = $request->is_coupon_applied;
+        // $appointment->order_summary = $request->order_summary;
+        // $appointment->is_coupon_applied = $request->is_coupon_applied;
 
-        $appointment->service_amount = $request->service_amount;
-        $appointment->discount_amount = $request->discount_amount;
-        $appointment->subtotal = $request->subtotal;
-        $appointment->total_tax_amount = $request->total_tax_amount;
-        $appointment->payable_amount = $request->payable_amount;
+        // $appointment->service_amount = $request->service_amount;
+        // $appointment->discount_amount = $request->discount_amount;
+        // $appointment->subtotal = $request->subtotal;
+        // $appointment->total_tax_amount = $request->total_tax_amount;
+        // $appointment->payable_amount = $request->payable_amount;
 
-        if ($request->is_coupon_applied == 1) {
-            $appointment->coupon_title = $request->coupon_title;
-            // add coupon to used coupon
-            $discounts = explode(',', $user->coupons_used);
-            array_push($discounts, $request->coupon_id);
-            $user->coupons_used = implode(',', $discounts);
-        }
+        // if ($request->is_coupon_applied == 1) {
+        //     $appointment->coupon_title = $request->coupon_title;
+        //     // add coupon to used coupon
+        //     $discounts = explode(',', $user->coupons_used);
+        //     array_push($discounts, $request->coupon_id);
+        //     $user->coupons_used = implode(',', $discounts);
+        // }
 
         $appointment->save();
         if ($request->has('documents')) {
@@ -1519,14 +1519,14 @@ class AppointmentController extends Controller
         GlobalFunction::sendPushToDoctor($title, $message, $doctor, $notifyData);
 
         // Add statement entry
-        GlobalFunction::addUserStatementEntry(
-            $user->id,
-            $appointment->appointment_number,
-            $appointment->payable_amount,
-            Constants::debit,
-            Constants::purchase,
-            null,
-        );
+        // GlobalFunction::addUserStatementEntry(
+        //     $user->id,
+        //     $appointment->appointment_number,
+        //     $appointment->payable_amount,
+        //     Constants::debit,
+        //     Constants::purchase,
+        //     null,
+        // );
 
         $appointment = Appointments::where('id', $appointment->id)->with(['user', 'doctor', 'patient', 'documents'])->first();
 

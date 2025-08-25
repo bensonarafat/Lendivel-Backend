@@ -241,7 +241,8 @@ class ConnectionController extends Controller
     public function fetchMyConnections(Request $request)
     {
         $rules = [
-            'user_id' => 'required'
+            'user_id' => 'required',
+            'request_by' => 'required|in:doctor,user'
         ];
 
         $validator = Validator::make($request->all(), $rules);
@@ -251,20 +252,37 @@ class ConnectionController extends Controller
             return response()->json(['status' => false, 'message' => $msg]);
         }
 
-        $user = User::where('id', $request->user_id)->first();
-        if ($user == null) {
-            return GlobalFunction::sendSimpleResponse(false, 'User does not exists!');
-        }
+        if ($request->request_by == 'doctor') {
+            $doctor = Doctors::where('id', $request->user_id)->first();
+            if ($doctor == null) {
+                return GlobalFunction::sendSimpleResponse(false, 'Doctor does not exists!');
+            }
+            // Fetch connections for the user
+            $connections = Connection::where('doctor_id', $request->user_id)
+                ->with(['user'])
+                ->get();
 
-        // Fetch connections for the user
-        $connections = Connection::where('user_id', $request->user_id)
-            ->with(['doctor'])
-            ->get();
-
-        if ($connections->isEmpty()) {
-            return GlobalFunction::sendSimpleResponse(false, 'No connections found');
+            if ($connections->isEmpty()) {
+                return GlobalFunction::sendSimpleResponse(false, 'No connections found');
+            } else {
+                return GlobalFunction::sendDataResponse(true, 'Connections found', $connections);
+            }
         } else {
-            return GlobalFunction::sendDataResponse(true, 'Connections found', $connections);
+            $user = User::where('id', $request->user_id)->first();
+            if ($user == null) {
+                return GlobalFunction::sendSimpleResponse(false, 'User does not exists!');
+            }
+
+            // Fetch connections for the user
+            $connections = Connection::where('user_id', $request->user_id)
+                ->with(['doctor'])
+                ->get();
+
+            if ($connections->isEmpty()) {
+                return GlobalFunction::sendSimpleResponse(false, 'No connections found');
+            } else {
+                return GlobalFunction::sendDataResponse(true, 'Connections found', $connections);
+            }
         }
     }
 
@@ -492,9 +510,7 @@ class ConnectionController extends Controller
 
         try {
             // check if there is already a connection between the doctor and user then send that same doctor else random
-            $connection = Connection::where(["user_id" => $request->user_id])
-                ->orWhere(["status" => Constants::connectionAccepted])
-                ->orWhere(['status' => Constants::connectionPlacedPending])
+            $connection = Connection::where(["user_id" => $request->user_id,  'request_by' => 'doctor', 'status' => Constants::connectionPlacedPending])
                 ->first();
             if ($connection != null) {
                 $doctor = Doctors::find($connection->doctor_id);
@@ -523,16 +539,14 @@ class ConnectionController extends Controller
             return response()->json(['status' => false, 'message' => $msg]);
         }
 
-        $user = User::where('id', $request->user_id)->first();
-        if ($user == null) {
-            return GlobalFunction::sendSimpleResponse(false, 'User does not exists!');
+        $doctor = Doctors::where('id', $request->doctor_id)->first();
+        if ($doctor == null) {
+            return GlobalFunction::sendSimpleResponse(false, 'Doctor does not exists!');
         }
 
         try {
             // check if there is already a connection between the user and doctor then send that same user else random
-            $connection = Connection::where(["doctor_id" => $request->user_id])
-                ->orWhere(["status" => Constants::connectionAccepted])
-                ->orWhere(['status' => Constants::connectionPlacedPending])
+            $connection = Connection::where(["doctor_id" => $request->doctor_id, 'request_by' => 'doctor', 'status' => Constants::connectionPlacedPending])
                 ->first();
             if ($connection != null) {
                 $user = User::find($connection->user_id);

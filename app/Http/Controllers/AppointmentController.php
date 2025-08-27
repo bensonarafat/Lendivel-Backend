@@ -1471,7 +1471,7 @@ class AppointmentController extends Controller
 
         $appointment->problem = GlobalFunction::cleanString($request->problem);
         // $appointment->order_summary = $request->order_summary;
-        // $appointment->is_coupon_applied = $request->is_coupon_applied;
+        $appointment->is_coupon_applied = $request->is_coupon_applied;
 
         // $appointment->service_amount = $request->service_amount;
         // $appointment->discount_amount = $request->discount_amount;

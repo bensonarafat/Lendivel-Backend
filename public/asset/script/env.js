@@ -1,4 +1,4 @@
-var domainUrl ="http://127.0.0.1:8000/"; //"http://yourdomain.com/";
+var domainUrl = "https://test.ruma.com.ng/"; //"http://127.0.0.1:8000/"; //"http://yourdomain.com/";
 var sourceUrl = `${domainUrl}public/storage/`;
 
 var strings = {

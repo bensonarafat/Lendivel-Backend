@@ -19,9 +19,9 @@
             </li>
 
             <li role="presentation" class="nav-item"><a class="nav-link pointer" href="#Section5" role="tab"
-                data-toggle="tab">{{ __('Appointment Reminders') }}
-                <span class="badge badge-transparent "></span></a>
-        </li>
+                    data-toggle="tab">{{ __('Appointment Reminders') }}
+                    <span class="badge badge-transparent "></span></a>
+            </li>
 
             <li role="presentation" class="nav-item"><a class="nav-link pointer" href="#Section2" role="tab"
                     data-toggle="tab">{{ __('Taxes') }}
@@ -86,12 +86,12 @@
                     <div class="form-row">
                         <div class="form-group col-md-3">
                             <label for="">{{ __('Support Email') }}</label>
-                            <input value="{{ $data->support_email }}" type="text" class="form-control" name="support_email"
-                                required>
+                            <input value="{{ $data->support_email }}" type="text" class="form-control"
+                                name="support_email" required>
                         </div>
                     </div>
 
-                    <h6 class="text-dark">{{__('ChatBot')}}</h6>
+                    <h6 class="text-dark">{{ __('ChatBot') }}</h6>
                     <div class="form-row">
                         {{-- Switch --}}
                         <div class="form-group col-md-3">
@@ -108,18 +108,22 @@
                             <label> {{ __('ChatBot Thumb') }}</label>
                             <input accept="image/png, image/jpeg" type="file" name="chatbot_thumb" class="form-control">
                             @if ($data->chatbot_thumb != null)
-                                <img class="mt-2 rounded shadow border" src="{{ env('FILES_BASE_URL')}}{{$data->chatbot_thumb }}" alt="" height="60" width="60">
+                                <img class="mt-2 rounded shadow border"
+                                    src="{{ env('FILES_BASE_URL') }}{{ $data->chatbot_thumb }}" alt=""
+                                    height="60" width="60">
                             @endif
                         </div>
                         {{-- Chatbot Name --}}
                         <div class="form-group col-md-3">
                             <label for="">{{ __('Chatbot Name') }}</label>
-                            <input value="{{ $data->chatbot_name }}" type="text" class="form-control" name="chatbot_name">
+                            <input value="{{ $data->chatbot_name }}" type="text" class="form-control"
+                                name="chatbot_name">
                         </div>
                         {{-- ChatGPT Token --}}
                         <div class="form-group col-md-3">
                             <label for="">{{ __('ChatGPT Token') }}</label>
-                            <input id="chatGPTToken" value="{{ $data->chatgpt_token }}" type="text" class="form-control" name="chatgpt_token">
+                            <input id="chatGPTToken" value="{{ $data->chatgpt_token }}" type="text"
+                                class="form-control" name="chatgpt_token">
                         </div>
                     </div>
 
@@ -387,17 +391,19 @@
                 </form>
             </div>
         </div>
-          {{-- Section 5 --}}
-          <div role="tabpanel" class="card tab-pane" id="Section5">
+        {{-- Section 5 --}}
+        <div role="tabpanel" class="card tab-pane" id="Section5">
             <div class="card-header">
                 <h4>{{ __('Appointment Reminders') }}</h4>
 
                 <a data-toggle="modal" data-target="#addReminderModal" href=""
-                class="ml-auto btn btn-primary text-white">{{ __('Add New') }}</a>
+                    class="ml-auto btn btn-primary text-white">{{ __('Add New') }}</a>
             </div>
             <div class="card-body">
                 <div class="mb-3">
-                    <span>Add how many reminders you want to have users before appointment time for each appointments.<br> These will be activated only once the appointment is accepted by doctor. <br> And make sure that you have configured the cron job correctly.<br> New settings applies for new appointments only.</span>
+                    <span>Add how many reminders you want to have users before appointment time for each appointments.<br>
+                        These will be activated only once the appointment is accepted by doctor. <br> And make sure that you
+                        have configured the cron job correctly.<br> New settings applies for new appointments only.</span>
                 </div>
                 <div class="table-responsive col-12">
                     <table class="table table-striped w-100 word-wrap" id="remindersTable">
@@ -418,62 +424,62 @@
         </div>
     </div>
 
-     {{-- Add Reminder Modal --}}
-     <div class="modal fade" id="addReminderModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-     aria-hidden="true">
-     <div class="modal-dialog modal-dialog-centered" role="document">
-         <div class="modal-content">
-             <div class="modal-header">
-                 <h6>{{ __('Add Reminder') }}</h6>
+    {{-- Add Reminder Modal --}}
+    <div class="modal fade" id="addReminderModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6>{{ __('Add Reminder') }}</h6>
 
-                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                     <span aria-hidden="true">&times;</span>
-                 </button>
-             </div>
-             <div class="modal-body">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
 
-                 <form action="" method="post" enctype="multipart/form-data" id="addReminderForm"
-                     autocomplete="off">
-                     @csrf
+                    <form action="" method="post" enctype="multipart/form-data" id="addReminderForm"
+                        autocomplete="off">
+                        @csrf
 
-                     <div class="form-row">
+                        <div class="form-row">
 
-                         <div class="form-group col-md-4">
-                             <label> {{ __('Day') }}</label>
-                             <select name="day" class="form-control">
-                                 @for ($i = 0; $i <= 10; $i++)
-                                 <option value="{{ $i }}">{{ $i }}</option>
-                                 @endfor
-                             </select>
-                         </div>
-                         <div class="form-group col-md-4">
-                             <label> {{ __('Hour') }}</label>
-                             <select name="hr" class="form-control">
-                                 @for ($i = 0; $i <= 24; $i++)
-                                 <option value="{{ $i }}">{{ $i }}</option>
-                                 @endfor
-                             </select>
-                         </div>
-                         <div class="form-group col-md-4">
-                             <label> {{ __('Minutes') }}</label>
-                             <select name="min" class="form-control">
-                                 @for ($i = 0; $i <= 60; $i++)
-                                 <option value="{{ $i }}">{{ $i }}</option>
-                                 @endfor
-                             </select>
-                         </div>
-                     </div>
+                            <div class="form-group col-md-4">
+                                <label> {{ __('Day') }}</label>
+                                <select name="day" class="form-control">
+                                    @for ($i = 0; $i <= 10; $i++)
+                                        <option value="{{ $i }}">{{ $i }}</option>
+                                    @endfor
+                                </select>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label> {{ __('Hour') }}</label>
+                                <select name="hr" class="form-control">
+                                    @for ($i = 0; $i <= 24; $i++)
+                                        <option value="{{ $i }}">{{ $i }}</option>
+                                    @endfor
+                                </select>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label> {{ __('Minutes') }}</label>
+                                <select name="min" class="form-control">
+                                    @for ($i = 0; $i <= 60; $i++)
+                                        <option value="{{ $i }}">{{ $i }}</option>
+                                    @endfor
+                                </select>
+                            </div>
+                        </div>
 
-                     <div class="form-group">
-                         <input class="btn btn-primary mr-1" type="submit" value=" {{ __('Submit') }}">
-                     </div>
+                        <div class="form-group">
+                            <input class="btn btn-primary mr-1" type="submit" value=" {{ __('Submit') }}">
+                        </div>
 
-                 </form>
-             </div>
+                    </form>
+                </div>
 
-         </div>
-     </div>
- </div>
+            </div>
+        </div>
+    </div>
 
     {{-- Add tax Modal --}}
     <div class="modal fade" id="addTaxModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"

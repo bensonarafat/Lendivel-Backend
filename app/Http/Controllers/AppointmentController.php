@@ -1406,13 +1406,7 @@ class AppointmentController extends Controller
             'date' => 'required',
             'time' => 'required',
             'type' => 'required',
-            // 'order_summary' => 'required',
-            // 'is_coupon_applied' => [Rule::in(1, 0)],
-            // 'service_amount' => 'required',
-            // 'discount_amount' => 'required',
-            // 'subtotal' => 'required',
-            // 'total_tax_amount' => 'required',
-            // 'payable_amount' => 'required',
+            'request_from' => 'required'
         ];
 
         $validator = Validator::make($request->all(), $rules);
@@ -1448,10 +1442,6 @@ class AppointmentController extends Controller
             return response()->json(['status' => false, 'message' => "this doctor is not active!"]);
         }
 
-        // if ($user->wallet < $request->payable_amount) {
-        //     return GlobalFunction::sendSimpleResponse(false, 'Insufficient balance in wallet');
-        // }
-
         $appointment = new Appointments();
         if ($request->has('patient_id')) {
             $patient = AddedPatients::find($request->patient_id);
@@ -1469,23 +1459,12 @@ class AppointmentController extends Controller
         $appointment->time = $request->time;
         $appointment->type = $request->type;
 
+        if ($request->request_from == "doctor") {
+            $appointment->status = Constants::orderAccepted;
+        }
+
         $appointment->problem = GlobalFunction::cleanString($request->problem);
-        // $appointment->order_summary = $request->order_summary;
         $appointment->is_coupon_applied = $request->is_coupon_applied;
-
-        // $appointment->service_amount = $request->service_amount;
-        // $appointment->discount_amount = $request->discount_amount;
-        // $appointment->subtotal = $request->subtotal;
-        // $appointment->total_tax_amount = $request->total_tax_amount;
-        // $appointment->payable_amount = $request->payable_amount;
-
-        // if ($request->is_coupon_applied == 1) {
-        //     $appointment->coupon_title = $request->coupon_title;
-        //     // add coupon to used coupon
-        //     $discounts = explode(',', $user->coupons_used);
-        //     array_push($discounts, $request->coupon_id);
-        //     $user->coupons_used = implode(',', $discounts);
-        // }
 
         $appointment->save();
         if ($request->has('documents')) {
@@ -1496,8 +1475,6 @@ class AppointmentController extends Controller
                 $docs->save();
             }
         }
-        // Deducting Money From Wallet
-        // $user->wallet = $user->wallet - $request->payable_amount;
         $user->save();
 
         // Send Push to user
@@ -1518,20 +1495,147 @@ class AppointmentController extends Controller
         ];
         GlobalFunction::sendPushToDoctor($title, $message, $doctor, $notifyData);
 
-        // Add statement entry
-        // GlobalFunction::addUserStatementEntry(
-        //     $user->id,
-        //     $appointment->appointment_number,
-        //     $appointment->payable_amount,
-        //     Constants::debit,
-        //     Constants::purchase,
-        //     null,
-        // );
-
         $appointment = Appointments::where('id', $appointment->id)->with(['user', 'doctor', 'patient', 'documents'])->first();
 
         return GlobalFunction::sendDataResponse(true, 'Appointment placed successfully', $appointment);
     }
+
+
+    // function addAppointment(Request $request)
+    // {
+    //     $rules = [
+    //         'user_id' => 'required',
+    //         'doctor_id' => 'required',
+    //         'problem' => 'required',
+    //         'date' => 'required',
+    //         'time' => 'required',
+    //         'type' => 'required',
+    //         // 'order_summary' => 'required',
+    //         // 'is_coupon_applied' => [Rule::in(1, 0)],
+    //         // 'service_amount' => 'required',
+    //         // 'discount_amount' => 'required',
+    //         // 'subtotal' => 'required',
+    //         // 'total_tax_amount' => 'required',
+    //         // 'payable_amount' => 'required',
+    //     ];
+
+    //     $validator = Validator::make($request->all(), $rules);
+    //     if ($validator->fails()) {
+    //         $messages = $validator->errors()->all();
+    //         $msg = $messages[0];
+    //         return response()->json(['status' => false, 'message' => $msg]);
+    //     }
+
+    //     $settings = GlobalSettings::first();
+
+    //     $user = Users::find($request->user_id);
+    //     if ($user == null) {
+    //         return response()->json(['status' => false, 'message' => "User doesn't exists!"]);
+    //     }
+
+    //     $appointmentCount = Appointments::where('user_id', $user->id)
+    //         ->where('status', Constants::orderPlacedPending)
+    //         ->orWhere('status', Constants::orderAccepted)
+    //         ->count();
+    //     if ($appointmentCount >= $settings->max_order_at_once) {
+    //         return response()->json(['status' => false, 'message' => "Maximum, at a time order limit, reached!"]);
+    //     }
+
+    //     $doctor = Doctors::find($request->doctor_id);
+    //     if ($doctor == null) {
+    //         return response()->json(['status' => false, 'message' => "Doctor doesn't exists!"]);
+    //     }
+    //     if ($doctor->on_vacation == 1) {
+    //         return response()->json(['status' => false, 'message' => "this doctor is on vacation!"]);
+    //     }
+    //     if ($doctor->status != Constants::statusDoctorApproved) {
+    //         return response()->json(['status' => false, 'message' => "this doctor is not active!"]);
+    //     }
+
+    //     // if ($user->wallet < $request->payable_amount) {
+    //     //     return GlobalFunction::sendSimpleResponse(false, 'Insufficient balance in wallet');
+    //     // }
+
+    //     $appointment = new Appointments();
+    //     if ($request->has('patient_id')) {
+    //         $patient = AddedPatients::find($request->patient_id);
+    //         if ($patient == null) {
+    //             return response()->json(['status' => false, 'message' => "Patient doesn't exists!"]);
+    //         }
+    //         $appointment->patient_id = $request->patient_id;
+    //     }
+
+    //     $appointment->appointment_number = GlobalFunction::generateAppointmentNumber();
+    //     $appointment->completion_otp = rand(1000, 9999);
+    //     $appointment->user_id = $request->user_id;
+    //     $appointment->doctor_id = $request->doctor_id;
+    //     $appointment->date = $request->date;
+    //     $appointment->time = $request->time;
+    //     $appointment->type = $request->type;
+
+    //     $appointment->problem = GlobalFunction::cleanString($request->problem);
+    //     // $appointment->order_summary = $request->order_summary;
+    //     $appointment->is_coupon_applied = $request->is_coupon_applied;
+
+    //     // $appointment->service_amount = $request->service_amount;
+    //     // $appointment->discount_amount = $request->discount_amount;
+    //     // $appointment->subtotal = $request->subtotal;
+    //     // $appointment->total_tax_amount = $request->total_tax_amount;
+    //     // $appointment->payable_amount = $request->payable_amount;
+
+    //     // if ($request->is_coupon_applied == 1) {
+    //     //     $appointment->coupon_title = $request->coupon_title;
+    //     //     // add coupon to used coupon
+    //     //     $discounts = explode(',', $user->coupons_used);
+    //     //     array_push($discounts, $request->coupon_id);
+    //     //     $user->coupons_used = implode(',', $discounts);
+    //     // }
+
+    //     $appointment->save();
+    //     if ($request->has('documents')) {
+    //         foreach ($request->documents as $document) {
+    //             $docs = new AppointmentDocs();
+    //             $docs->appointment_id = $appointment->id;
+    //             $docs->image = GlobalFunction::saveFileAndGivePath($document);
+    //             $docs->save();
+    //         }
+    //     }
+    //     // Deducting Money From Wallet
+    //     // $user->wallet = $user->wallet - $request->payable_amount;
+    //     $user->save();
+
+    //     // Send Push to user
+    //     $title = "Appointment :" . $appointment->appointment_number;
+    //     $message = "Appointment has been placed successfully!";
+    //     $notifyData = [
+    //         'type' => Constants::notifyAppointment . '',
+    //         'id' => $appointment->id . ''
+    //     ];
+    //     GlobalFunction::sendPushToUser($title, $message, $user, $notifyData);
+
+    //     // Send push to doctor
+    //     $title = "New Appointment Request Received";
+    //     $message = "Review the details and accept.";
+    //     $notifyData = [
+    //         'type' => Constants::notifyAppointment . '',
+    //         'id' => $appointment->id . ''
+    //     ];
+    //     GlobalFunction::sendPushToDoctor($title, $message, $doctor, $notifyData);
+
+    //     // Add statement entry
+    //     // GlobalFunction::addUserStatementEntry(
+    //     //     $user->id,
+    //     //     $appointment->appointment_number,
+    //     //     $appointment->payable_amount,
+    //     //     Constants::debit,
+    //     //     Constants::purchase,
+    //     //     null,
+    //     // );
+
+    //     $appointment = Appointments::where('id', $appointment->id)->with(['user', 'doctor', 'patient', 'documents'])->first();
+
+    //     return GlobalFunction::sendDataResponse(true, 'Appointment placed successfully', $appointment);
+    // }
 
 
     function fetchCoupons(Request $request)

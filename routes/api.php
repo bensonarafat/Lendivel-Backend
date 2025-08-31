@@ -50,7 +50,6 @@ Route::prefix('user')->group(function () {
     // Appointments
     Route::post('fetchAcceptedPendingAppointmentsOfDoctorByDate', [AppointmentController::class, 'fetchAcceptedPendingAppointmentsOfDoctorByDate'])->middleware('checkHeader');
     Route::post('fetchCoupons', [AppointmentController::class, 'fetchCoupons'])->middleware('checkHeader');
-    Route::post('addAppointment', [AppointmentController::class, 'addAppointment'])->middleware('checkHeader');
     Route::post('rescheduleAppointment', [AppointmentController::class, 'rescheduleAppointment'])->middleware('checkHeader');
     Route::post('cancelAppointment', [AppointmentController::class, 'cancelAppointment'])->middleware('checkHeader');
     Route::post('fetchAppointmentDetails', [AppointmentController::class, 'fetchAppointmentDetails'])->middleware('checkHeader');
@@ -70,6 +69,10 @@ Route::prefix('user')->group(function () {
     Route::post('fetchReelByIdPatient', [ReelController::class, 'fetchReelByIdPatient'])->middleware('checkHeader');
     Route::post('fetchDoctorReels', [ReelController::class, 'fetchDoctorReels'])->middleware('checkHeader');
 });
+
+
+// I have to separate the appointment from the user, so that doctor and user can use the same route
+Route::post('addAppointment', [AppointmentController::class, 'addAppointment'])->middleware('checkHeader');
 
 
 //******************/ Doctor

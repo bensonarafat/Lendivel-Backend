@@ -2,26 +2,29 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AddedPatients;
-use App\Models\AppointmentDocs;
-use App\Models\Appointments;
-use App\Models\Constants;
+use Exception;
+use App\Models\Users;
 use App\Models\Coupons;
-use App\Models\DoctorEarningHistory;
-use App\Models\DoctorPayoutHistory;
-use App\Models\DoctorReviews;
 use App\Models\Doctors;
-use App\Models\DoctorWalletStatements;
+use App\Models\Constants;
+use App\Models\Appointments;
+use App\Models\PlatformData;
+use Illuminate\Http\Request;
+use App\Models\AddedPatients;
+use App\Models\DoctorReviews;
+use App\Models\Prescriptions;
 use App\Models\GlobalFunction;
 use App\Models\GlobalSettings;
-use App\Models\PlatformData;
-use App\Models\PlatformEarningHistory;
-use App\Models\Prescriptions;
-use App\Models\ScheduledReminders;
-use App\Models\Users;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use App\Models\AppointmentDocs;
 use Illuminate\Validation\Rule;
+use App\Models\AppointmentPayment;
+use App\Models\ScheduledReminders;
+use Illuminate\Support\Facades\DB;
+use App\Models\DoctorPayoutHistory;
+use App\Models\DoctorEarningHistory;
+use App\Models\DoctorWalletStatements;
+use App\Models\PlatformEarningHistory;
+use Illuminate\Support\Facades\Validator;
 
 class AppointmentController extends Controller
 {
@@ -1297,6 +1300,107 @@ class AppointmentController extends Controller
 
         return GlobalFunction::sendDataResponse(true, 'data fetched successfully', $result);
     }
+
+    public function updateServiceCharge(Request $request)
+    {
+        $rules = [
+            'appointment_id' => 'required|exists:appointments,id',
+            'service_amount' => 'required|numeric',
+            'discount_amount' => 'nullable|numeric',
+            'tax_amount' => 'nullable|numeric',
+        ];
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            $messages = $validator->errors()->all();
+            $msg = $messages[0];
+            return response()->json(['status' => false, 'message' => $msg]);
+        }
+
+
+        try {
+
+            $serviceAmount = $request->service_amount;
+            $discountAmount = $request->discount_amount ?? 0;
+            $taxAmount = $request->tax_amount ?? 0;
+
+            // Auto calculations
+            $subTotal = $serviceAmount - $discountAmount;
+            $payableAmount = $subTotal + $taxAmount;
+
+            $updateData = [
+                "service_amount"  => $serviceAmount,
+                "discount_amount" => $discountAmount,
+                "total_tax_amount"      => $taxAmount,
+                "subtotal"        => $subTotal,
+                "payable_amount"  => $payableAmount,
+            ];
+
+
+            Appointments::whereId($request->appointment_id)->update($updateData);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Service charge updated successfully',
+                'data' => $updateData
+            ]);
+        } catch (Exception $e) {
+            return response()->json(['status' => false, 'message' => "Oops, there was an error"]);
+        }
+    }
+
+    public function updateAppointmentPayment(Request $request)
+    {
+        $rules = [
+            'appointment_id' => 'required|exists:appointments,id',
+            'amount'         => 'required|numeric',
+            'user_id'        => 'required|exists:users,id',
+            'payment_method' => 'required|string',  // e.g., card, transfer, cash
+            'currency'       => 'nullable|string', // default could be 'NGN' or 'USD'
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            $messages = $validator->errors()->all();
+            $msg = $messages[0];
+            return response()->json(['status' => false, 'message' => $msg]);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Create payment record
+            $payment = AppointmentPayment::create([
+                'appointment_id' => $request->appointment_id,
+                'user_id'        => $request->user_id,
+                'amount'         => $request->amount,
+                'payment_method' => $request->payment_method,
+                'currency'       => $request->currency ?? 'NGN',
+                'status'         => 'success', // assuming payment is successful
+                'paid_at'        => now(),
+            ]);
+
+            // Update appointment status
+            Appointments::whereId($request->appointment_id)->update([
+                'payment_status' => 'success',
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'status'  => true,
+                'message' => 'Payment recorded successfully',
+                'data'    => $payment,
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'status'  => false,
+                'message' => "Oops, there was an error: " . $e->getMessage(),
+            ]);
+        }
+    }
+
     function fetchAppointmentRequests(Request $request)
     {
         $rules = [

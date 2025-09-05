@@ -10,7 +10,7 @@ class ConnectionPayment extends Model
     use HasFactory;
 
     use HasFactory;
-    public $table = "appointment_payments";
+    public $table = "connection_payments";
 
     protected $fillable = [
         'connection_id',

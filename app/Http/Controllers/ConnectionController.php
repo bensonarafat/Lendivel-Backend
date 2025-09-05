@@ -567,7 +567,7 @@ class ConnectionController extends Controller
         $rules = [
             'connection_id' => 'required|exists:connections,id',
             'service_amount' => 'required|numeric',
-            'extra_charge' => 'required|numeric',
+            'extra_charge' =>   'nullable|numeric',
             'discount_amount' => 'nullable|numeric',
             'tax_amount' => 'nullable|numeric',
         ];
@@ -586,13 +586,13 @@ class ConnectionController extends Controller
             $taxAmount = $request->tax_amount ?? 0;
 
             // Auto calculations
-            $subTotal = ($serviceAmount - $discountAmount) + $request->extra_charge;
-            $payableAmount = $subTotal + $taxAmount + $request->extra_charge;
+            $subTotal = ($serviceAmount - $discountAmount) + ($request->extra_charge ?? 0);
+            $payableAmount = $subTotal + $taxAmount + ($request->extra_charge ?? 0);
 
             $updateData = [
                 "service_amount"  => $serviceAmount,
                 "discount_amount" => $discountAmount,
-                "extra_charge"   => $request->extra_charge,
+                "extra_charge"    => ($request->extra_charge  ?? 0),
                 "total_tax_amount" => $taxAmount,
                 "subtotal"        => $subTotal,
                 "payable_amount"  => $payableAmount,

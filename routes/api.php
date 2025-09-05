@@ -109,8 +109,7 @@ Route::post('addPrescription', [AppointmentController::class, 'addPrescription']
 Route::post('editPrescription', [AppointmentController::class, 'editPrescription'])->middleware('checkHeader');
 Route::post('completeAppointment', [AppointmentController::class, 'completeAppointment'])->middleware('checkHeader');
 Route::post('fetchAppointmentHistory', [AppointmentController::class, 'fetchAppointmentHistory'])->middleware('checkHeader');
-Route::post("updateServiceCharge", [AppointmentController::class, "updateServiceCharge"])->middleware('checkHeader');
-Route::post("updateAppointmentPayment", [AppointmentController::class, "updateAppointmentPayment"])->middleware("checkHeader");
+
 // Connection
 Route::post("random-doctors", [ConnectionController::class, "fetchRandomDoctor"])->name("checkHeader");
 Route::post("random-users", [ConnectionController::class, "fetchRandomUser"])->name("checkHeader");
@@ -121,6 +120,8 @@ Route::post("declineConnection", [ConnectionController::class, "declineConnectio
 Route::post("cancelConnectionRequest", [ConnectionController::class, "cancelConnectionRequest"])->middleware("checkHeader");
 Route::post("fetchMyConnections", [ConnectionController::class, "fetchMyConnections"])->middleware("checkHeader");
 Route::post("reconnectConnection", [ConnectionController::class, "reconnectConnection"])->middleware("checkHeader");
+Route::post("updateServiceCharge", [ConnectionController::class, "updateServiceCharge"])->middleware('checkHeader');
+Route::post("updateConnectionPayment", [ConnectionController::class, "updateConnectionPayment"])->middleware("checkHeader");
 
 // Pause Messages
 Route::post("pause-messages", [ConnectionController::class, "pauseCommunication"])->name("checkHeader");

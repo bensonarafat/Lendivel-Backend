@@ -2,14 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ChatActivity;
 use Exception;
 use App\Models\User;
 use App\Models\Doctors;
 use App\Models\Constants;
 use App\Models\Connection;
+use App\Models\ChatActivity;
+use App\Models\ConnectionPayment;
 use Illuminate\Http\Request;
 use App\Models\GlobalFunction;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class ConnectionController extends Controller
@@ -556,6 +558,109 @@ class ConnectionController extends Controller
             return GlobalFunction::sendDataResponse(true, 'User Data fetched successfully', $user);
         } catch (Exception $e) {
             return response()->json(['status' => false, 'message' => "There was an error fetching random users. Try again later"]);
+        }
+    }
+
+
+    public function updateServiceCharge(Request $request)
+    {
+        $rules = [
+            'connection_id' => 'required|exists:connections,id',
+            'service_amount' => 'required|numeric',
+            'discount_amount' => 'nullable|numeric',
+            'tax_amount' => 'nullable|numeric',
+        ];
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            $messages = $validator->errors()->all();
+            $msg = $messages[0];
+            return response()->json(['status' => false, 'message' => $msg]);
+        }
+
+
+        try {
+
+            $serviceAmount = $request->service_amount;
+            $discountAmount = $request->discount_amount ?? 0;
+            $taxAmount = $request->tax_amount ?? 0;
+
+            // Auto calculations
+            $subTotal = $serviceAmount - $discountAmount;
+            $payableAmount = $subTotal + $taxAmount;
+
+            $updateData = [
+                "service_amount"  => $serviceAmount,
+                "discount_amount" => $discountAmount,
+                "total_tax_amount" => $taxAmount,
+                "subtotal"        => $subTotal,
+                "payable_amount"  => $payableAmount,
+            ];
+
+
+            Connection::whereId($request->connection_id)->update($updateData);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Service charge updated successfully',
+                'data' => $updateData
+            ]);
+        } catch (Exception $e) {
+            return response()->json(['status' => false, 'message' => "Oops, there was an error"]);
+        }
+    }
+
+    public function updateConnectionPayment(Request $request)
+    {
+        $rules = [
+            'connection_id' => 'required|exists:connections,id',
+            'amount'         => 'required|numeric',
+            'user_id'        => 'required|exists:users,id',
+            'payment_method' => 'required|string',  // e.g., card, transfer, cash
+            'currency'       => 'nullable|string', // default could be 'NGN' or 'USD'
+            'expiry_date'    => 'required'
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            $messages = $validator->errors()->all();
+            $msg = $messages[0];
+            return response()->json(['status' => false, 'message' => $msg]);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Create payment record
+            $payment = ConnectionPayment::create([
+                'connection_id' => $request->connection_id,
+                'user_id'        => $request->user_id,
+                'amount'         => $request->amount,
+                'payment_method' => $request->payment_method,
+                'currency'       => $request->currency ?? 'NGN',
+                'status'         => 'success', // assuming payment is successful
+                'paid_at'        => now(),
+            ]);
+
+            // Update appointment status
+            Connection::whereId($request->connection_id)->update([
+                'payment_status' => 'success',
+                'expiry_date'    => $request->expiry_date,
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'status'  => true,
+                'message' => 'Payment recorded successfully',
+                'data'    => $payment,
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'status'  => false,
+                'message' => "Oops, there was an error: " . $e->getMessage(),
+            ]);
         }
     }
 }

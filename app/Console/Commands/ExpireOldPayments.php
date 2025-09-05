@@ -40,10 +40,10 @@ class ExpireOldPayments extends Command
      */
     public function handle()
     {
-        $oneMonthAgo = Carbon::now()->subMonth();
+        $today = Carbon::now();
 
         $expired = AppointmentPayment::where('payment_status', 'success')
-            ->where('created_at', '<', $oneMonthAgo)
+            ->where('expiry_date', '<', $today)
             ->update(['payment_status' => 'expired']);
 
         $this->info("Expired {$expired} payments.");

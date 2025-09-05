@@ -1356,6 +1356,7 @@ class AppointmentController extends Controller
             'user_id'        => 'required|exists:users,id',
             'payment_method' => 'required|string',  // e.g., card, transfer, cash
             'currency'       => 'nullable|string', // default could be 'NGN' or 'USD'
+            'expiry_date'    => 'required'
         ];
 
         $validator = Validator::make($request->all(), $rules);
@@ -1382,6 +1383,7 @@ class AppointmentController extends Controller
             // Update appointment status
             Appointments::whereId($request->appointment_id)->update([
                 'payment_status' => 'success',
+                'expiry_date'    => $request->expiry_date,
             ]);
 
             DB::commit();

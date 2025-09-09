@@ -3,12 +3,16 @@
 namespace App\Http\Controllers;
 
 use Exception;
+use Carbon\Carbon;
+use App\Models\User;
 use App\Models\Users;
 use App\Models\Coupons;
 use App\Models\Doctors;
 use App\Models\Constants;
+use App\Models\Connection;
 use App\Models\Appointments;
 use App\Models\PlatformData;
+use App\Models\Subscription;
 use Illuminate\Http\Request;
 use App\Models\AddedPatients;
 use App\Models\DoctorReviews;
@@ -1405,6 +1409,7 @@ class AppointmentController extends Controller
     function addAppointment(Request $request)
     {
         $rules = [
+            "connection_id" => 'required',
             'user_id' => 'required',
             'doctor_id' => 'required',
             'problem' => 'required',
@@ -1419,6 +1424,12 @@ class AppointmentController extends Controller
             $messages = $validator->errors()->all();
             $msg = $messages[0];
             return response()->json(['status' => false, 'message' => $msg]);
+        }
+
+        // get connection
+        $connection = Connection::whereId($request->connection_id)->first();
+        if ($connection == null) {
+            return response()->json(['status' => false, 'message' => "Oops, there was an error"]);
         }
 
         $settings = GlobalSettings::first();
@@ -1447,6 +1458,41 @@ class AppointmentController extends Controller
             return response()->json(['status' => false, 'message' => "this doctor is not active!"]);
         }
 
+        // Start here
+        $today = Carbon::now();
+        $exists = Subscription::where([
+            "connection_id" => $request->connection_id,
+            "user_id"   => $request->user_id,
+            "doctor_id" => $request->doctor_id,
+        ])
+            ->where('expiry_date', '<', $today)
+            ->exists();
+        // if not exists collect payment from users
+        if (!$exists) {
+            if ($user->wallet < $connection->payable_amount) {
+                return GlobalFunction::sendSimpleResponse(false, 'Insufficient balance in wallet');
+            }
+
+            $subscription  = new Subscription();
+            $subscription->service_amount = $connection->service_amount;
+            $subscription->discount_amount = $connection->discount_amount;
+            $subscription->subtotal = $connection->subtotal;
+            $subscription->total_tax_amount = $connection->total_tax_amount;
+            $subscription->payable_amount = $connection->payable_amount;
+
+
+            $user->wallet = $user->wallet - $connection->payable_amount;
+            $user->save();
+
+            $subscription->user_id = $request->user_id;
+            $subscription->doctor_id = $request->doctor_id;
+            $subscription->connection_id = $request->connection_id;
+            $subscription->payment_status = "success";
+            $subscription->expiry_date = Carbon::now()->addMonths($request->months ?? 1);
+            $subscription->save();
+        }
+
+        // End here
         $appointment = new Appointments();
         if ($request->has('patient_id')) {
             $patient = AddedPatients::find($request->patient_id);
@@ -1495,6 +1541,17 @@ class AppointmentController extends Controller
         ];
         GlobalFunction::sendPushToUser($title, $message, $user, $notifyData);
 
+        if (!$exists) {
+            // Add statement entry
+            GlobalFunction::addUserStatementEntry(
+                $user->id,
+                $appointment->appointment_number,
+                $connection->payable_amount,
+                Constants::debit,
+                Constants::purchase,
+                null,
+            );
+        }
         // Send push to doctor
         $title = "New Appointment Request Received";
         $message = "Review the details and accept.";

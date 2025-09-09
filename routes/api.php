@@ -121,13 +121,12 @@ Route::post("cancelConnectionRequest", [ConnectionController::class, "cancelConn
 Route::post("fetchMyConnections", [ConnectionController::class, "fetchMyConnections"])->middleware("checkHeader");
 Route::post("reconnectConnection", [ConnectionController::class, "reconnectConnection"])->middleware("checkHeader");
 Route::post("updateServiceCharge", [ConnectionController::class, "updateServiceCharge"])->middleware('checkHeader');
-Route::post("updateConnectionPayment", [ConnectionController::class, "updateConnectionPayment"])->middleware("checkHeader");
+Route::post("checkAppointmentSubscription", [ConnectionController::class, "checkAppointmentSubscription"])->middleware("checkHeader");
 
 // Pause Messages
 Route::post("pause-messages", [ConnectionController::class, "pauseCommunication"])->name("checkHeader");
 Route::post("resume-messages", [ConnectionController::class, "resumeCommunication"])->name("checkHeader");
 Route::post("block-messages", [ConnectionController::class, "blockCommunication"])->name("checkHeader");
-
 
 // Wallet
 Route::post('fetchDoctorWalletStatement', [AppointmentController::class, 'fetchDoctorWalletStatement'])->middleware('checkHeader');

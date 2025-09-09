@@ -3,14 +3,16 @@
 namespace App\Http\Controllers;
 
 use Exception;
+use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Doctors;
 use App\Models\Constants;
 use App\Models\Connection;
 use App\Models\ChatActivity;
-use App\Models\ConnectionPayment;
+use App\Models\Subscription;
 use Illuminate\Http\Request;
 use App\Models\GlobalFunction;
+use App\Models\ConnectionPayment;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
@@ -598,7 +600,6 @@ class ConnectionController extends Controller
                 "payable_amount"  => $payableAmount,
             ];
 
-
             Connection::whereId($request->connection_id)->update($updateData);
 
             return response()->json([
@@ -659,6 +660,50 @@ class ConnectionController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
+            return response()->json([
+                'status'  => false,
+                'message' => "Oops, there was an error: " . $e->getMessage(),
+            ]);
+        }
+    }
+
+    public function checkAppointmentSubscription(Request $request)
+    {
+        $rules = [
+            'connection_id' => 'required|exists:connections,id',
+            'user_id'       => 'required|exists:users,id',
+            'doctor_id'     => 'required|exists:doctors,id',
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            $messages = $validator->errors()->all();
+            $msg = $messages[0];
+            return response()->json(['status' => false, 'message' => $msg]);
+        }
+
+        try {
+            $today = Carbon::now();
+            $exists = Subscription::where([
+                "connection_id" => $request->connection_id,
+                "user_id"   => $request->user_id,
+                "doctor_id" => $request->doctor_id,
+            ])
+                ->where('expiry_date', '<', $today)
+                ->exists();
+
+            if ($exists) {
+                return response()->json([
+                    "status" => true,
+                    "message" => "Subscription found"
+                ]);
+            } else {
+                return response()->json([
+                    "status" => false,
+                    "message" => "Subscription not found"
+                ]);
+            }
+        } catch (Exception $e) {
             return response()->json([
                 'status'  => false,
                 'message' => "Oops, there was an error: " . $e->getMessage(),

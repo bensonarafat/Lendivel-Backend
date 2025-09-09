@@ -3,9 +3,10 @@
 namespace App\Console\Commands;
 
 use Carbon\Carbon;
+use App\Models\Subscription;
 use Illuminate\Console\Command;
-use App\Models\AppointmentPayment;
 use App\Models\ConnectionPayment;
+use App\Models\AppointmentPayment;
 
 class ExpireOldPayments extends Command
 {
@@ -43,7 +44,7 @@ class ExpireOldPayments extends Command
     {
         $today = Carbon::now();
 
-        $expired = ConnectionPayment::where('payment_status', 'success')
+        $expired = Subscription::where('payment_status', 'success')
             ->where('expiry_date', '<', $today)
             ->update(['payment_status' => 'expired']);
 

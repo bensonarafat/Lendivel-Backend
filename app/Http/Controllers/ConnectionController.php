@@ -689,7 +689,8 @@ class ConnectionController extends Controller
                 "user_id"   => $request->user_id,
                 "doctor_id" => $request->doctor_id,
             ])
-                ->where('expiry_date', '<', $today)
+                ->where('payment_status', '=', 'success')
+                ->where('expiry_date', '>=', $today)
                 ->exists();
 
             if ($exists) {

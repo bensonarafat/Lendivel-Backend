@@ -1465,30 +1465,33 @@ class AppointmentController extends Controller
             "user_id"   => $request->user_id,
             "doctor_id" => $request->doctor_id,
         ])
-            ->where('expiry_date', '<', $today)
+            ->where('payment_status', '=', 'success')
+            ->where('expiry_date', '>=', $today)
             ->exists();
         // if not exists collect payment from users
         if (!$exists) {
-            if ($user->wallet < $connection->payable_amount) {
+            $months = $request->months ?? 1;
+            $payableAmount = $months * $connection->payable_amount;
+
+            if ($user->wallet < $payableAmount) {
                 return GlobalFunction::sendSimpleResponse(false, 'Insufficient balance in wallet');
             }
 
             $subscription  = new Subscription();
-            $subscription->service_amount = $connection->service_amount;
-            $subscription->discount_amount = $connection->discount_amount;
-            $subscription->subtotal = $connection->subtotal;
-            $subscription->total_tax_amount = $connection->total_tax_amount;
-            $subscription->payable_amount = $connection->payable_amount;
+            $subscription->service_amount = $connection->service_amount * $months;
+            $subscription->discount_amount = $connection->discount_amount * $months;
+            $subscription->subtotal = $connection->subtotal * $months;
+            $subscription->total_tax_amount = $connection->total_tax_amount * $months;
+            $subscription->payable_amount = $payableAmount;
 
-
-            $user->wallet = $user->wallet - $connection->payable_amount;
+            $user->wallet = $user->wallet - $payableAmount;
             $user->save();
 
             $subscription->user_id = $request->user_id;
             $subscription->doctor_id = $request->doctor_id;
             $subscription->connection_id = $request->connection_id;
             $subscription->payment_status = "success";
-            $subscription->expiry_date = Carbon::now()->addMonths($request->months ?? 1);
+            $subscription->expiry_date = Carbon::now()->addMonths($months);
             $subscription->save();
         }
 

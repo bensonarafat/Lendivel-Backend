@@ -1816,7 +1816,7 @@ class AppointmentController extends Controller
     {
         $rules = [
             "user_id" => "required",
-            "connection_id" => "required",
+            "appointment_id" => "required",
         ];
         $validator = Validator::make($request->all(), $rules);
         if ($validator->fails()) {
@@ -1824,7 +1824,7 @@ class AppointmentController extends Controller
             $msg = $messages[0];
             return response()->json(['status' => false, 'message' => $msg]);
         }
-        $tasks = Tasks::where(['user_id' => $request->user_id, "connection_id" => $request->connection_id])->get();
+        $tasks = Tasks::where(['user_id' => $request->user_id, "appointment_id" => $request->appointment_id])->get();
 
         return response()->json(['success' => true, 'tasks' => $tasks]);
     }

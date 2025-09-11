@@ -35,4 +35,9 @@ class Appointments extends Model
     {
         return $this->hasMany(AppointmentDocs::class, 'appointment_id', 'id');
     }
+
+    public function tasks()
+    {
+        return $this->hasOne(Tasks::class, 'appointment_id', 'id');
+    }
 }

@@ -24,6 +24,7 @@ use App\Models\DoctorPayoutHistory;
 use App\Models\DoctorEarningHistory;
 use App\Models\DoctorWalletStatements;
 use App\Models\PlatformEarningHistory;
+use Exception;
 use Illuminate\Support\Facades\Validator;
 
 class AppointmentController extends Controller
@@ -1161,7 +1162,7 @@ class AppointmentController extends Controller
         }
 
         $result->previous_appointments =
-            Appointments::with(['user', 'patient', 'doctor', 'documents', 'prescription', 'rating'])
+            Appointments::with(['user', 'patient', 'doctor', 'documents', 'prescription', 'rating, tasks'])
             ->Where('doctor_id', $result->doctor_id)
             ->Where('user_id', $result->user_id)
             ->WhereNotIn('id', [$result->id])
@@ -1727,9 +1728,9 @@ class AppointmentController extends Controller
 
     public function addTask(Request $request)
     {
-        $task = Tasks::create($request->validate([
+        $rules = [
+            'appointment_id' => 'required',
             'user_id' => 'required',
-            'doctor_id' => 'required',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'repeats' => 'nullable|integer|in:0,1,2,3',
@@ -1737,24 +1738,77 @@ class AppointmentController extends Controller
             'end_date' => 'nullable|date|after_or_equal:start_date',
             'notes' => 'nullable|string',
             'status' => 'nullable|integer|in:0,1,2'
-        ]));
-        return response()->json(['success' => true, 'task' => $task], 201);
+        ];
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            $messages = $validator->errors()->all();
+            $msg = $messages[0];
+            return response()->json(['status' => false, 'message' => $msg]);
+        }
+        $appointment = Appointments::where('id', $request->appointment_id)
+            ->with(['user', 'patient', 'doctor', 'documents'])
+            ->first();
+        if ($appointment == null) {
+            return GlobalFunction::sendSimpleResponse(false, 'Appointment does not exists!');
+        }
+
+        try {
+            $task = Tasks::create([
+                "appointment_id" => $request->appointment_id,
+                "user_id" => $request->user_id,
+                "title" => $request->title,
+                "description" => $request->description,
+                "repeats" => $request->repeats,
+                "start_date" => $request->start_date,
+                "end_date" => $request->end_date,
+                "notes" => $request->notes,
+            ]);
+            return response()->json(['success' => true, 'task' => $task], 200);
+        } catch (Exception $e) {
+            return response()->json(["sucess" => false, "message" => "Oops, there was an error"], 401);
+        }
     }
     public function editTask(Request $request)
     {
-        $task = Tasks::findOrFail($request->id);
-
-        $task->update($request->validate([
-            'title' => 'sometimes|string|max:255',
+        $rules = [
+            'id'            =>  "id",
+            'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'repeats' => 'nullable|integer|in:0,1,2,3',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
             'notes' => 'nullable|string',
             'status' => 'nullable|integer|in:0,1,2'
-        ]));
+        ];
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            $messages = $validator->errors()->all();
+            $msg = $messages[0];
+            return response()->json(['status' => false, 'message' => $msg]);
+        }
+        $appointment = Appointments::where('id', $request->appointment_id)
+            ->with(['user', 'patient', 'doctor', 'documents'])
+            ->first();
+        if ($appointment == null) {
+            return GlobalFunction::sendSimpleResponse(false, 'Appointment does not exists!');
+        }
+        try {
+            $task = Tasks::findOrFail($request->id);
 
-        return response()->json(['success' => true, 'task' => $task]);
+            $task->update([
+                "title" => $request->title,
+                "description" => $request->description,
+                "repeats"   => $request->repeats,
+                "start_date" => $request->start_date,
+                "end_date"  => $request->end_date,
+                "notes"     => $request->notes,
+                "status"    => $request->status,
+            ]);
+
+            return response()->json(['success' => true, 'task' => $task]);
+        } catch (\Exception $e) {
+            return response()->json(["sucess" => false, "message" => "Oops, there was an error"], 401);
+        }
     }
     public function deleteTask(Request $request)
     {
@@ -1765,19 +1819,32 @@ class AppointmentController extends Controller
     }
     public function allTask(Request $request)
     {
-        $tasks = Tasks::where('user_id', $request->user_id)
-            ->where('doctor_id', $request->doctor_id)
-            ->get();
+        $rules = [
+            "user_id" => "required",
+            "connection_id" => "required",
+        ];
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            $messages = $validator->errors()->all();
+            $msg = $messages[0];
+            return response()->json(['status' => false, 'message' => $msg]);
+        }
+        $tasks = Tasks::where(['user_id' => $request->user_id, "connection_id" => $request->connection_id])->get();
 
         return response()->json(['success' => true, 'tasks' => $tasks]);
     }
     public function getTask(Request $request)
     {
-        $task = Tasks::where('id', $request->id)
-            ->where('user_id', $request->user_id)
-            ->where('doctor_id', $request->doctor_id)
-            ->firstOrFail();
-
+        $rules = [
+            "id" => "required",
+        ];
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            $messages = $validator->errors()->all();
+            $msg = $messages[0];
+            return response()->json(['status' => false, 'message' => $msg]);
+        }
+        $task = Tasks::where('id', $request->id)->firstOrFail();
         return response()->json(['success' => true, 'task' => $task]);
     }
 }

@@ -13,6 +13,7 @@ class Tasks extends Model
 
     protected $fillable = [
         'id',
+        'appointment_id',
         'user_id',
         'doctor_id',
         'title',
@@ -23,4 +24,9 @@ class Tasks extends Model
         'notes',
         'status'
     ];
+
+    public function appointment()
+    {
+        return $this->hasOne(Appointments::class, 'id', 'appointment_id');
+    }
 }

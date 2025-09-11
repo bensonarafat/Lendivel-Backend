@@ -110,6 +110,13 @@ Route::post('editPrescription', [AppointmentController::class, 'editPrescription
 Route::post('completeAppointment', [AppointmentController::class, 'completeAppointment'])->middleware('checkHeader');
 Route::post('fetchAppointmentHistory', [AppointmentController::class, 'fetchAppointmentHistory'])->middleware('checkHeader');
 
+
+Route::post('addTask', [AppointmentController::class, 'addTask'])->middleware('checkHeader');
+Route::post('editTask', [AppointmentController::class, 'editTask'])->middleware('checkHeader');
+Route::post('deleteTask', [AppointmentController::class, 'deleteTask'])->middleware('checkHeader');
+Route::post("allTask", [AppointmentController::class, 'allTask'])->middleware('checkHeader');
+Route::post("getTask", [AppointmentController::class, 'getTask'])->middleware('checkHeader');
+
 // Connection
 Route::post("random-doctors", [ConnectionController::class, "fetchRandomDoctor"])->name("checkHeader");
 Route::post("random-users", [ConnectionController::class, "fetchRandomUser"])->name("checkHeader");

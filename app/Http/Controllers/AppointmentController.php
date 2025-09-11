@@ -2,9 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Exception;
 use Carbon\Carbon;
-use App\Models\User;
+use App\Models\Tasks;
 use App\Models\Users;
 use App\Models\Coupons;
 use App\Models\Doctors;
@@ -20,10 +19,7 @@ use App\Models\Prescriptions;
 use App\Models\GlobalFunction;
 use App\Models\GlobalSettings;
 use App\Models\AppointmentDocs;
-use Illuminate\Validation\Rule;
-use App\Models\AppointmentPayment;
 use App\Models\ScheduledReminders;
-use Illuminate\Support\Facades\DB;
 use App\Models\DoctorPayoutHistory;
 use App\Models\DoctorEarningHistory;
 use App\Models\DoctorWalletStatements;
@@ -1726,5 +1722,62 @@ class AppointmentController extends Controller
         }
         $data = Coupons::whereNotIn('id', explode(',', $user->coupons_used))->orderBy('id', 'DESC')->get();
         return GlobalFunction::sendDataResponse(true, 'coupons fetched successfully', $data);
+    }
+
+
+    public function addTask(Request $request)
+    {
+        $task = Tasks::create($request->validate([
+            'user_id' => 'required',
+            'doctor_id' => 'required',
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'repeats' => 'nullable|integer|in:0,1,2,3',
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
+            'notes' => 'nullable|string',
+            'status' => 'nullable|integer|in:0,1,2'
+        ]));
+        return response()->json(['success' => true, 'task' => $task], 201);
+    }
+    public function editTask(Request $request)
+    {
+        $task = Tasks::findOrFail($request->id);
+
+        $task->update($request->validate([
+            'title' => 'sometimes|string|max:255',
+            'description' => 'nullable|string',
+            'repeats' => 'nullable|integer|in:0,1,2,3',
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
+            'notes' => 'nullable|string',
+            'status' => 'nullable|integer|in:0,1,2'
+        ]));
+
+        return response()->json(['success' => true, 'task' => $task]);
+    }
+    public function deleteTask(Request $request)
+    {
+        $task = Tasks::findOrFail($request->id);
+        $task->delete();
+
+        return response()->json(['success' => true, 'message' => 'Task deleted']);
+    }
+    public function allTask(Request $request)
+    {
+        $tasks = Tasks::where('user_id', $request->user_id)
+            ->where('doctor_id', $request->doctor_id)
+            ->get();
+
+        return response()->json(['success' => true, 'tasks' => $tasks]);
+    }
+    public function getTask(Request $request)
+    {
+        $task = Tasks::where('id', $request->id)
+            ->where('user_id', $request->user_id)
+            ->where('doctor_id', $request->doctor_id)
+            ->firstOrFail();
+
+        return response()->json(['success' => true, 'task' => $task]);
     }
 }

@@ -24,6 +24,7 @@ use App\Models\DoctorPayoutHistory;
 use App\Models\DoctorEarningHistory;
 use App\Models\DoctorWalletStatements;
 use App\Models\PlatformEarningHistory;
+use App\Models\User;
 use Exception;
 use Illuminate\Support\Facades\Validator;
 
@@ -1846,5 +1847,35 @@ class AppointmentController extends Controller
         }
         $task = Tasks::where('id', $request->id)->firstOrFail();
         return response()->json(['success' => true, 'task' => $task]);
+    }
+
+    public function medicalInformation(Request $request)
+    {
+
+        $rules = [
+            "user_id" => "required",
+        ];
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            $messages = $validator->errors()->all();
+            $msg = $messages[0];
+            return response()->json(['status' => false, 'message' => $msg]);
+        }
+
+        try {
+            $report = User::where('id', $request->user_id)
+                ->first();
+            if ($report == null) {
+                return GlobalFunction::sendSimpleResponse(false, 'User does not exists!');
+            }
+            $report->prescriptions = Prescriptions::where("user_id", $request->user_id)->get()->toArray();
+            $report->reminders = ScheduledReminders::where("user_id", $request->user_id)->get()->toArray();
+            $report->tasks = Tasks::where('user_id', $request->user_id)->get()->toArray();
+            $report->appointments = Appointments::where("user_id", $request->user_id)->get()->toArray();
+
+            return response()->json(['success' => true, 'report' => $report]);
+        } catch (\Exception $e) {
+            return response()->json(["sucess" => false, "message" => "Oops, there was an error"], 401);
+        }
     }
 }

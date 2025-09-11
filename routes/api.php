@@ -70,6 +70,7 @@ Route::prefix('user')->group(function () {
     Route::post('fetchDoctorReels', [ReelController::class, 'fetchDoctorReels'])->middleware('checkHeader');
 });
 
+Route::post("medicalInformation", [AppointmentController::class, "medicalInformation"])->middleware("checkHeader");
 
 // I have to separate the appointment from the user, so that doctor and user can use the same route
 Route::post('addAppointment', [AppointmentController::class, 'addAppointment'])->middleware('checkHeader');

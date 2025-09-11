@@ -1772,7 +1772,7 @@ class AppointmentController extends Controller
     public function editTask(Request $request)
     {
         $rules = [
-            'id'            =>  "id",
+            'id'            =>  "required",
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'repeats' => 'nullable|integer|in:0,1,2,3',

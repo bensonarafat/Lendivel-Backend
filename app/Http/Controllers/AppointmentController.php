@@ -1866,6 +1866,7 @@ class AppointmentController extends Controller
             $report->reminders = ScheduledReminders::where("user_id", $request->user_id)->get()->toArray();
             $report->tasks = Tasks::where('user_id', $request->user_id)->get()->toArray();
             $report->appointments = Appointments::where("user_id", $request->user_id)->get()->toArray();
+            $report->doctors = Connection::where('user_id', $request->user_id)->with(['doctor'])->get()->toArray();
 
             return response()->json(['success' => true, 'report' => $report]);
         } catch (\Exception $e) {

@@ -75,7 +75,6 @@ Route::post("medicalInformation", [AppointmentController::class, "medicalInforma
 // I have to separate the appointment from the user, so that doctor and user can use the same route
 Route::post('addAppointment', [AppointmentController::class, 'addAppointment'])->middleware('checkHeader');
 
-
 //******************/ Doctor
 Route::post('doctorRegistration', [DoctorController::class, 'doctorRegistration'])->middleware('checkHeader');
 Route::post('updateDoctorDetails', [DoctorController::class, 'updateDoctorDetails'])->middleware('checkHeader');

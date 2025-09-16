@@ -1754,15 +1754,18 @@ class AppointmentController extends Controller
         }
 
         try {
-            $task = Tasks::create([
-                "appointment_id" => $request->appointment_id,
-                "user_id" => $request->user_id,
+            $tasks = [
                 "title" => $request->title,
                 "description" => $request->description,
                 "repeats" => $request->repeats,
                 "start_date" => $request->start_date,
                 "end_date" => $request->end_date,
                 "notes" => $request->notes,
+            ];
+            $task = Tasks::create([
+                "appointment_id" => $request->appointment_id,
+                "user_id" => $request->user_id,
+                "tasks" => $tasks
             ]);
             return response()->json(['success' => true, 'task' => $task], 200);
         } catch (Exception $e) {
@@ -1788,16 +1791,20 @@ class AppointmentController extends Controller
             return response()->json(['status' => false, 'message' => $msg]);
         }
         try {
+
+            $data = [
+                "title" => $request->title,
+                "description" => $request->description,
+                "repeats" => $request->repeats,
+                "start_date" => $request->start_date,
+                "end_date" => $request->end_date,
+                "notes" => $request->notes,
+            ];
+
             $task = Tasks::findOrFail($request->id);
 
             $task->update([
-                "title" => $request->title,
-                "description" => $request->description,
-                "repeats"   => $request->repeats,
-                "start_date" => $request->start_date,
-                "end_date"  => $request->end_date,
-                "notes"     => $request->notes,
-                "status"    => $request->status,
+                "tasks" => $data,
             ]);
 
             return response()->json(['success' => true, 'task' => $task]);

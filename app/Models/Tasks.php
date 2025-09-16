@@ -15,14 +15,7 @@ class Tasks extends Model
         'id',
         'appointment_id',
         'user_id',
-        'doctor_id',
-        'title',
-        'description',
-        'repeats',
-        'start_date',
-        'end_date',
-        'notes',
-        'status'
+        'tasks'
     ];
 
     public function appointment()

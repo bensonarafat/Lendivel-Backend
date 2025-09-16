@@ -1754,20 +1754,24 @@ class AppointmentController extends Controller
         }
 
         try {
-            $tasks = json_encode([
-                "title" => $request->title,
-                "description" => $request->description,
-                "repeats" => $request->repeats,
-                "start_date" => $request->start_date,
-                "end_date" => $request->end_date,
-                "notes" => $request->notes,
-            ]);
+            $tasks = json_encode(
+                [
+                    [
+                        "title" => $request->title,
+                        "description" => $request->description,
+                        "repeats" => $request->repeats,
+                        "start_date" => $request->start_date,
+                        "end_date" => $request->end_date,
+                    ]
+                ]
+            );
             $task = Tasks::create([
                 "appointment_id" => $request->appointment_id,
                 "user_id" => $request->user_id,
+                "notes" => $request->notes,
                 "tasks" => $tasks
             ]);
-            return response()->json(['success' => true, 'task' => $task], 200);
+            return response()->json(['success' => true, 'data' => $task], 200);
         } catch (Exception $e) {
 
             return response()->json(["sucess" => false, "message" => "Oops, there was an error"], 401);
@@ -1793,22 +1797,26 @@ class AppointmentController extends Controller
         }
         try {
 
-            $data = json_encode([
+            $task = Tasks::findOrFail($request->id);
+
+            $jsonData = json_decode($task->tasks, true);
+
+            array_merge([
                 "title" => $request->title,
                 "description" => $request->description,
                 "repeats" => $request->repeats,
                 "start_date" => $request->start_date,
                 "end_date" => $request->end_date,
-                "notes" => $request->notes,
-            ]);
+            ], $jsonData);
 
-            $task = Tasks::findOrFail($request->id);
+            $data = json_encode($jsonData);
 
             $task->update([
+                "notes" => $request->notes,
                 "tasks" => $data,
             ]);
 
-            return response()->json(['success' => true, 'task' => $task]);
+            return response()->json(['success' => true, 'data' => $task]);
         } catch (\Exception $e) {
             return response()->json(["sucess" => false, "message" => "Oops, there was an error"], 401);
         }

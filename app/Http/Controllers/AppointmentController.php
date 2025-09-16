@@ -1732,13 +1732,8 @@ class AppointmentController extends Controller
         $rules = [
             'appointment_id' => 'required',
             'user_id' => 'required',
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'repeats' => 'nullable|integer|in:0,1,2,3',
-            'start_date' => 'nullable|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
-            'notes' => 'nullable|string',
-            'status' => 'nullable|integer|in:0,1,2'
+            'notes' => 'required',
+            'tasks' => 'required|json'
         ];
         $validator = Validator::make($request->all(), $rules);
         if ($validator->fails()) {
@@ -1754,22 +1749,12 @@ class AppointmentController extends Controller
         }
 
         try {
-            $tasks = json_encode(
-                [
-                    [
-                        "title" => $request->title,
-                        "description" => $request->description,
-                        "repeats" => $request->repeats,
-                        "start_date" => $request->start_date,
-                        "end_date" => $request->end_date,
-                    ]
-                ]
-            );
+
             $task = Tasks::create([
                 "appointment_id" => $request->appointment_id,
                 "user_id" => $request->user_id,
                 "notes" => $request->notes,
-                "tasks" => $tasks
+                "tasks" => $request->tasks
             ]);
             return response()->json(['success' => true, 'data' => $task], 200);
         } catch (Exception $e) {
@@ -1780,14 +1765,9 @@ class AppointmentController extends Controller
     public function editTask(Request $request)
     {
         $rules = [
-            'id'            =>  "required",
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'repeats' => 'nullable|integer|in:0,1,2,3',
-            'start_date' => 'nullable|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
-            'notes' => 'nullable|string',
-            'status' => 'nullable|integer|in:0,1,2'
+            'id'    =>  "required",
+            'notes' => 'required',
+            'tasks' => 'required|json'
         ];
         $validator = Validator::make($request->all(), $rules);
         if ($validator->fails()) {
@@ -1799,21 +1779,10 @@ class AppointmentController extends Controller
 
             $task = Tasks::findOrFail($request->id);
 
-            $jsonData = json_decode($task->tasks, true);
-
-            array_merge([
-                "title" => $request->title,
-                "description" => $request->description,
-                "repeats" => $request->repeats,
-                "start_date" => $request->start_date,
-                "end_date" => $request->end_date,
-            ], $jsonData);
-
-            $data = json_encode($jsonData);
-
             $task->update([
                 "notes" => $request->notes,
-                "tasks" => $data,
+                "tasks" => $request->tasks,
+                "notes" => $request->notes,
             ]);
 
             return response()->json(['success' => true, 'data' => $task]);

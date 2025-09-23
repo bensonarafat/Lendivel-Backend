@@ -1470,7 +1470,7 @@ class AppointmentController extends Controller
         // if not exists collect payment from users
         if (!$exists) {
             $months = $request->months ?? 1;
-            $payableAmount = $months * $connection->payable_amount;
+            $payableAmount = $request->extra_charge + ($months * $connection->payable_amount);
 
             if ($user->wallet < $payableAmount) {
                 return GlobalFunction::sendSimpleResponse(false, 'Insufficient balance in wallet');

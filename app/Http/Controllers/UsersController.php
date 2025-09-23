@@ -2,23 +2,24 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AddedPatients;
-use App\Models\AppointmentDocs;
-use App\Models\Appointments;
-use App\Models\Constants;
+use App\Models\Users;
 use App\Models\Coupons;
-use App\Models\DoctorCategories;
 use App\Models\Doctors;
+use App\Models\Constants;
+use App\Models\DoctorNote;
+use App\Models\Appointments;
+use Illuminate\Http\Request;
+use App\Models\AddedPatients;
 use App\Models\GlobalFunction;
 use App\Models\GlobalSettings;
-use App\Models\UserNotification;
-use App\Models\Users;
-use App\Models\UserWalletRechargeLogs;
-use App\Models\UserWalletStatements;
-use App\Models\UserWithdrawRequest;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use App\Models\AppointmentDocs;
 use Illuminate\Validation\Rule;
+use App\Models\DoctorCategories;
+use App\Models\UserNotification;
+use App\Models\UserWithdrawRequest;
+use App\Models\UserWalletStatements;
+use App\Models\UserWalletRechargeLogs;
+use Illuminate\Support\Facades\Validator;
 
 class UsersController extends Controller
 {
@@ -1388,7 +1389,7 @@ class UsersController extends Controller
             'device_token' => 'required',
             'fullname' => 'required',
             'login_type' => [Rule::in(1, 2, 3)],
-            'is_login' => [Rule::in(0,1)] //1=login 0=register
+            'is_login' => [Rule::in(0, 1)] //1=login 0=register
         ];
 
         $validator = Validator::make($request->all(), $rules);
@@ -1399,8 +1400,8 @@ class UsersController extends Controller
         }
 
         $user = Users::where('identity', $request->identity)->first();
-        if($request->is_login == 1 && $user == null){
-               return GlobalFunction::sendSimpleResponse(false, 'user not found');
+        if ($request->is_login == 1 && $user == null) {
+            return GlobalFunction::sendSimpleResponse(false, 'user not found');
         }
 
         if ($user != null) {
@@ -1425,5 +1426,67 @@ class UsersController extends Controller
 
             return GlobalFunction::sendDataResponse(true, 'User registration successful', $user);
         }
+    }
+
+
+    function createDoctorNote(Request $request)
+    {
+        $rules = [
+            'user_id' => 'required',
+            'appointment_id' => 'required|exists:appointments,id',
+            'patient_complaint' => 'required|string|min:10|max:1000',
+            'brief_history' => 'required|string|min:10|max:1000',
+            'diagnosis' => 'required|string|min:5|max:500',
+            'investigations' => 'required|string|min:5|max:1000',
+            'note_date' => 'required|date|before_or_equal:today'
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            $messages = $validator->errors()->all();
+            $msg = $messages[0];
+            return response()->json(['status' => false, 'message' => $msg]);
+        }
+
+        $doctorNote = DoctorNote::create([
+            'appointment_id' => $request->appointment_id,
+            'user_id' => $request->user_id,
+            'patient_complaint' => $request->patient_complaint,
+            'brief_history' => $request->brief_history,
+            'diagnosis' => $request->diagnosis,
+            'investigations' => $request->investigations,
+            'treatment_plan' => $request->treatment_plan,
+            'medications_prescribed' => $request->medications_prescribed,
+            'follow_up_instructions' => $request->follow_up_instructions,
+            'note_date' => $request->note_date ?? now()->format('Y-m-d'),
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Doctor note created successfully',
+            'data' => $doctorNote
+        ]);
+    }
+
+    public function getDoctorNote(Request $request)
+    {
+        $rules = [
+            'user_id' => 'required',
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            $messages = $validator->errors()->all();
+            $msg = $messages[0];
+            return response()->json(['status' => false, 'message' => $msg]);
+        }
+
+        $doctorNote = DoctorNote::findOrFail($request->user_id);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Doctor note created successfully',
+            'data' => $doctorNote
+        ]);
     }
 }

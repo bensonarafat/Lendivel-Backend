@@ -3,6 +3,7 @@
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\ConnectionController;
 use App\Http\Controllers\DoctorController;
+use App\Http\Controllers\HealthProfileController;
 use App\Http\Controllers\ReelController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\UsersController;
@@ -116,6 +117,13 @@ Route::post('editTask', [AppointmentController::class, 'editTask'])->middleware(
 Route::post('deleteTask', [AppointmentController::class, 'deleteTask'])->middleware('checkHeader');
 Route::post("allTask", [AppointmentController::class, 'allTask'])->middleware('checkHeader');
 Route::post("getTask", [AppointmentController::class, 'getTask'])->middleware('checkHeader');
+
+// Health profile
+Route::post("updateHealthProfile", [HealthProfileController::class, "updateHealthProfile"])->middleware("checkHeader");
+Route::post("getHealthProfile", [HealthProfileController::class, "getHealthProfile"])->middleware("checkHeader");
+
+Route::post("createDoctorNote", [UsersController::class, "createDoctorNote"])->middleware("checkHeader");
+Route::post("getDoctorNote", [UsersController::class, "getDoctorNote"])->middleware("checkHeader");
 
 // Connection
 Route::post("random-doctors", [ConnectionController::class, "fetchRandomDoctor"])->name("checkHeader");

@@ -22,6 +22,7 @@ use App\Models\AppointmentDocs;
 use App\Models\ScheduledReminders;
 use App\Models\DoctorPayoutHistory;
 use App\Models\DoctorEarningHistory;
+use App\Models\DoctorNote;
 use App\Models\DoctorWalletStatements;
 use App\Models\PlatformEarningHistory;
 use App\Models\User;
@@ -1852,6 +1853,7 @@ class AppointmentController extends Controller
             $report->tasks = Tasks::where('user_id', $request->user_id)->get()->toArray();
             $report->appointments = Appointments::where("user_id", $request->user_id)->get()->toArray();
             $report->doctors = Connection::where('user_id', $request->user_id)->with(['doctor'])->get()->toArray();
+            $report->doctor_notes = DoctorNote::where("user_id", $request->user_id)->get()->toArray();
 
             return response()->json(['success' => true, 'report' => $report]);
         } catch (\Exception $e) {

@@ -1164,7 +1164,7 @@ class AppointmentController extends Controller
         }
 
         $result->previous_appointments =
-            Appointments::with(['user', 'patient', 'doctor', 'documents', 'prescription', 'rating, tasks'])
+            Appointments::with(['user', 'patient', 'doctor', 'documents', 'prescription', 'rating', 'tasks'])
             ->Where('doctor_id', $result->doctor_id)
             ->Where('user_id', $result->user_id)
             ->WhereNotIn('id', [$result->id])

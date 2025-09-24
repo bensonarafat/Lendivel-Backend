@@ -1157,7 +1157,7 @@ class AppointmentController extends Controller
             return response()->json(['status' => false, 'message' => $msg]);
         }
         $result = Appointments::where('id', $request->appointment_id)
-            ->with(['user', 'patient', 'doctor', 'documents', 'prescription', 'rating', 'rating'])
+            ->with(['user', 'patient', 'doctor', 'documents', 'prescription', 'rating', 'tasks'])
             ->first();
         if ($result == null) {
             return GlobalFunction::sendSimpleResponse(false, 'Appointment does not exists!');
